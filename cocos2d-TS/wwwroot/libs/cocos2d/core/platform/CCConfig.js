@@ -23,16 +23,17 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-
+import * as cocoa from "../cocoa/index";
+//export module config {
 /**
  * The current version of Cocos2d-JS being used.<br/>
  * Please DO NOT remove this String, it is an important flag for bug tracking.<br/>
  * If you post a bug to forum, please attach this flag.
  * @type {String}
  * @name cc.ENGINE_VERSION
- */
-window["CocosEngine"] = cc.ENGINE_VERSION = "Cocos2d-JS v3.17";
-
+*/
+export var ENGINE_VERSION = "Cocos2d-TS v3.17";
+window["CocosEngine"] = ENGINE_VERSION;
 /**
  * <p>
  *   If enabled, the texture coordinates will be calculated by using this formula: <br/>
@@ -56,16 +57,14 @@ window["CocosEngine"] = cc.ENGINE_VERSION = "Cocos2d-JS v3.17";
  * @constant
  * @type {Number}
  */
-cc.FIX_ARTIFACTS_BY_STRECHING_TEXEL = 0;
-
+export var FIX_ARTIFACTS_BY_STRECHING_TEXEL = false;
 /**
  * Position of the FPS (Default: 0,0 (bottom-left corner))<br/>
  * To modify it, in Web engine please refer to CCConfig.js, in JSB please refer to CCConfig.h
  * @constant
  * @type {cc.Point}
  */
-cc.DIRECTOR_STATS_POSITION = cc.p(0, 0);
-
+export var DIRECTOR_STATS_POSITION = cocoa.p(0, 0);
 /**
  * <p>
  *   Seconds between FPS updates.<br/>
@@ -78,8 +77,7 @@ cc.DIRECTOR_STATS_POSITION = cc.p(0, 0);
  * @constant
  * @type {Number}
  */
-cc.DIRECTOR_FPS_INTERVAL = 0.5;
-
+export var DIRECTOR_FPS_INTERVAL = 0.5;
 /**
  * <p>
  *    If enabled, the cc.Node objects (cc.Sprite, cc.Label,etc) will be able to render in subpixels.<br/>
@@ -91,8 +89,7 @@ cc.DIRECTOR_FPS_INTERVAL = 0.5;
  * @constant
  * @type {Number}
  */
-cc.COCOSNODE_RENDER_SUBPIXEL = 1;
-
+export var COCOSNODE_RENDER_SUBPIXEL = true;
 /**
  * <p>
  *   If enabled, the cc.Sprite objects rendered with cc.SpriteBatchNode will be able to render in subpixels.<br/>
@@ -104,8 +101,7 @@ cc.COCOSNODE_RENDER_SUBPIXEL = 1;
  * @constant
  * @type {Number}
  */
-cc.SPRITEBATCHNODE_RENDER_SUBPIXEL = 1;
-
+export var SPRITEBATCHNODE_RENDER_SUBPIXEL = true;
 /**
  * <p>
  *     If most of your images have pre-multiplied alpha, set it to 1 (if you are going to use .PNG/.JPG file images).<br/>
@@ -117,8 +113,7 @@ cc.SPRITEBATCHNODE_RENDER_SUBPIXEL = 1;
  * @constant
  * @type {Number}
  */
-cc.OPTIMIZE_BLEND_FUNC_FOR_PREMULTIPLIED_ALPHA = 1;
-
+export var OPTIMIZE_BLEND_FUNC_FOR_PREMULTIPLIED_ALPHA = true;
 /**
  * <p>
  *   Use GL_TRIANGLE_STRIP instead of GL_TRIANGLES when rendering the texture atlas.<br/>
@@ -130,8 +125,7 @@ cc.OPTIMIZE_BLEND_FUNC_FOR_PREMULTIPLIED_ALPHA = 1;
  * @constant
  * @type {Number}
  */
-cc.TEXTURE_ATLAS_USE_TRIANGLE_STRIP = 0;
-
+export var TEXTURE_ATLAS_USE_TRIANGLE_STRIP = false;
 /**
  * <p>
  *    By default, cc.TextureAtlas (used by many cocos2d classes) will use VAO (Vertex Array Objects).<br/>
@@ -144,8 +138,7 @@ cc.TEXTURE_ATLAS_USE_TRIANGLE_STRIP = 0;
  * @constant
  * @type {Number}
  */
-cc.TEXTURE_ATLAS_USE_VAO = 0;
-
+export var TEXTURE_ATLAS_USE_VAO = false;
 /**
  * <p>
  *  If enabled, NPOT textures will be used where available. Only 3rd gen (and newer) devices support NPOT textures.<br/>
@@ -163,8 +156,7 @@ cc.TEXTURE_ATLAS_USE_VAO = 0;
  * @type {Number}
  * @deprecated This value will be removed in 1.1 and NPOT textures will be loaded by default if the device supports it.
  */
-cc.TEXTURE_NPOT_SUPPORT = 0;
-
+export var TEXTURE_NPOT_SUPPORT = false;
 /**
  * <p>
  *    It's the suffix that will be appended to the files in order to load "retina display" images.<br/>
@@ -177,8 +169,7 @@ cc.TEXTURE_NPOT_SUPPORT = 0;
  * @constant
  * @type {String}
  */
-cc.RETINA_DISPLAY_FILENAME_SUFFIX = "-hd";
-
+export var RETINA_DISPLAY_FILENAME_SUFFIX = "-hd";
 /**
  * <p>
  *     If enabled, it will use LA88 (Luminance Alpha 16-bit textures) for CCLabelTTF objects. <br/>
@@ -190,8 +181,7 @@ cc.RETINA_DISPLAY_FILENAME_SUFFIX = "-hd";
  * @constant
  * @type {Number}
  */
-cc.USE_LA88_LABELS = 1;
-
+export var USE_LA88_LABELS = true;
 /**
  * <p>
  *   If enabled, all subclasses of cc.Sprite will draw a bounding box<br/>
@@ -205,8 +195,13 @@ cc.USE_LA88_LABELS = 1;
  * @constant
  * @type {Number}
  */
-cc.SPRITE_DEBUG_DRAW = 0;
-
+export var DEBUG_DRAW_enum;
+(function (DEBUG_DRAW_enum) {
+    DEBUG_DRAW_enum[DEBUG_DRAW_enum["disabled"] = 0] = "disabled";
+    DEBUG_DRAW_enum[DEBUG_DRAW_enum["drawBoundBox"] = 1] = "drawBoundBox";
+    DEBUG_DRAW_enum[DEBUG_DRAW_enum["drawTextureBox"] = 2] = "drawTextureBox";
+})(DEBUG_DRAW_enum || (DEBUG_DRAW_enum = {}));
+export var SPRITE_DEBUG_DRAW = DEBUG_DRAW_enum.disabled;
 /**
  * <p>
  *    If enabled, all subclasses of cc.Sprite that are rendered using an cc.SpriteBatchNode draw a bounding box.<br/>
@@ -217,8 +212,7 @@ cc.SPRITE_DEBUG_DRAW = 0;
  * @constant
  * @type {Number}
  */
-cc.SPRITEBATCHNODE_DEBUG_DRAW = 0;
-
+export var SPRITEBATCHNODE_DEBUG_DRAW = false;
 /**
  * <p>
  *   If enabled, all subclasses of cc.LabelBMFont will draw a bounding box <br/>
@@ -229,8 +223,7 @@ cc.SPRITEBATCHNODE_DEBUG_DRAW = 0;
  * @constant
  * @type {Number}
  */
-cc.LABELBMFONT_DEBUG_DRAW = 0;
-
+export var LABELBMFONT_DEBUG_DRAW = false;
 /**
  * <p>
  *    If enabled, all subclasses of cc.LabelAtlas will draw a bounding box<br/>
@@ -241,17 +234,14 @@ cc.LABELBMFONT_DEBUG_DRAW = 0;
  * @constant
  * @type {Number}
  */
-cc.LABELATLAS_DEBUG_DRAW = 0;
-
-cc.DRAWNODE_TOTAL_VERTICES = 20000;
-
+export var LABELATLAS_DEBUG_DRAW = false;
+export var DRAWNODE_TOTAL_VERTICES = 20000;
 /**
  * Default engine
  * @constant
  * @type {String}
  */
-cc.DEFAULT_ENGINE = cc.ENGINE_VERSION + "-canvas";
-
+export var DEFAULT_ENGINE = ENGINE_VERSION + "-canvas";
 /**
  * <p>
  *    If enabled, actions that alter the position property (eg: CCMoveBy, CCJumpBy, CCBezierBy, etc..) will be stacked.                  <br/>
@@ -261,8 +251,7 @@ cc.DEFAULT_ENGINE = cc.ENGINE_VERSION + "-canvas";
  * @constant
  * @type {number}
  */
-cc.ENABLE_STACKABLE_ACTIONS = 1;
-
+export var ENABLE_STACKABLE_ACTIONS = true;
 /**
  * <p>
  *      If enabled, cocos2d will maintain an OpenGL state cache internally to avoid unnecessary switches.                                     <br/>
@@ -278,4 +267,6 @@ cc.ENABLE_STACKABLE_ACTIONS = 1;
  * @constant
  * @type {Number}
  */
-cc.ENABLE_GL_STATE_CACHE = 1;
+export var ENABLE_GL_STATE_CACHE = true;
+//}
+//# sourceMappingURL=CCConfig.js.map

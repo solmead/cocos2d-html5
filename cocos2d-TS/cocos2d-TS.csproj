@@ -3,11 +3,43 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <RootNamespace>cocos2d_TS</RootNamespace>
+    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Remove="wwwroot\libs\cocos2d\core\cocoa\CCAffineTransform.ts" />
+    <Content Remove="wwwroot\libs\cocos2d\core\cocoa\CCGeometry.ts" />
+    <Content Remove="wwwroot\libs\cocos2d\core\cocoa\index.ts" />
+    <Content Remove="wwwroot\libs\cocos2d\core\platform\ccClass.ts" />
+    <Content Remove="wwwroot\libs\cocos2d\core\platform\CCCommon.ts" />
+    <Content Remove="wwwroot\libs\cocos2d\core\platform\CCConfig.ts" />
+    <Content Remove="wwwroot\libs\cocos2d\core\platform\CCTypes.ts" />
+  </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\libs\cocos2d\" />
+    <TypeScriptCompile Include="wwwroot\libs\cocos2d\core\cocoa\CCAffineTransform.ts" />
+    <TypeScriptCompile Include="wwwroot\libs\cocos2d\core\cocoa\CCGeometry.ts" />
+    <TypeScriptCompile Include="wwwroot\libs\cocos2d\core\cocoa\index.ts" />
+    <TypeScriptCompile Include="wwwroot\libs\cocos2d\core\platform\ccClass.ts" />
+    <TypeScriptCompile Include="wwwroot\libs\cocos2d\core\platform\CCCommon.ts" />
+    <TypeScriptCompile Include="wwwroot\libs\cocos2d\core\platform\CCConfig.ts" />
+    <TypeScriptCompile Include="wwwroot\libs\cocos2d\core\platform\CCTypes.ts" />
   </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <TypeScriptTarget>ES2018</TypeScriptTarget>
+    <TypeScriptJSXEmit>React</TypeScriptJSXEmit>
+    <TypeScriptModuleKind>ES6</TypeScriptModuleKind>
+    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+    <TypeScriptRemoveComments>False</TypeScriptRemoveComments>
+    <TypeScriptOutFile />
+    <TypeScriptOutDir />
+    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+    <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
+    <TypeScriptSourceMap>True</TypeScriptSourceMap>
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
+  </PropertyGroup>
 
 </Project>
