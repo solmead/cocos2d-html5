@@ -1,4 +1,6 @@
-﻿
+﻿import { nonenumerable } from "../../../decorators/PropertyDecorator";
+
+
 
 /**
  * @namespace
@@ -26,9 +28,21 @@ var classManager = new ClassManager();
 export class ccClass {
     public __instanceId: number;
 
+    private ___pid: number = 0;
+
+    @nonenumerable
+    public get __pid(): number {
+        return this.___pid;
+    }
+
+    public set __pid(value: number) {
+        this.___pid = value;
+    }
+
 
     constructor() {
         this.__instanceId = classManager.getNewInstanceId();
+        this.___pid = classManager.getNewID();
 
     }
 }

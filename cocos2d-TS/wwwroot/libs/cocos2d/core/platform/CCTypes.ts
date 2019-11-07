@@ -1,51 +1,131 @@
-﻿
+﻿import { ccClass } from "./ccClass";
+import * as macro from "./CCMacro";
+
 
 
 export class Color {
 
+
     public _val: number;
 
-    constructor(public r: number, public g: number, public b: number, public a: number) {
-        this.r = r || 0;
-        this.g = g || 0;
-        this.b = b || 0;
+    constructor(r: number = null, g: number = null, b: number = null, a: number = null) {
+        r = r || 0;
+        g = g || 0;
+        b = b || 0;
 
-        this.a = typeof a === 'number' ? a : 255;
+        a = typeof a === 'number' ? a : 255;
         this._val = ((r << 24) >>> 0) + (g << 16) + (b << 8) + a;
 
     }
 
-    get R():number {
+    get r():number {
         return (this._val & 0xff000000) >>> 24;
     }
-    set R(value:number) {
+    set r(value:number) {
         this._val = (this._val & 0x00ffffff) | ((value << 24) >>> 0);
     }
-    get G():number {
+    get g():number {
         return (this._val & 0x00ff0000) >> 16;
     }
-    set G(value:number) {
+    set g(value:number) {
         this._val = (this._val & 0xff00ffff) | (value << 16);
     }
-    get B(): number {
+    get b(): number {
         return (this._val & 0x0000ff00) >> 8;
     }
-    set B(value: number) {
+    set b(value: number) {
         this._val = (this._val & 0xffff00ff) | (value << 8);
     }
-    get A(): number {
+    get a(): number {
         return this._val & 0x000000ff;
     }
-    set A(value: number) {
+    set a(value: number) {
         this._val = (this._val & 0xffffff00) | value;
     }
 
 
 
 
+    /**
+     * White color (255, 255, 255, 255)
+     * @returns {Color}
+     * @private
+     */
+    static get WHITE():Color {
+        return color(255, 255, 255);
+    };
 
+    /**
+     *  Yellow color (255, 255, 0, 255)
+     * @returns {Color}
+     * @private
+     */
+    static get YELLOW(): Color {
+        return color(255, 255, 0);
+    };
 
+    /**
+     *  Blue color (0, 0, 255, 255)
+     * @type {Color}
+     * @private
+     */
+    static get BLUE(): Color {
+        return color(0, 0, 255);
+    };
 
+    /**
+     *  Green Color (0, 255, 0, 255)
+     * @type {Color}
+     * @private
+     */
+    static get GREEN(): Color {
+        return color(0, 255, 0);
+    };
+
+    /**
+     *  Red Color (255, 0, 0, 255)
+     * @type {Color}
+     * @private
+     */
+    static get RED(): Color {
+        return color(255, 0, 0);
+    };
+
+    /**
+     *  Magenta Color (255, 0, 255, 255)
+     * @type {Color}
+     * @private
+     */
+    static get MAGENTA(): Color {
+        return color(255, 0, 255);
+    };
+
+    /**
+     *  Black Color (0, 0, 0, 255)
+     * @type {Color}
+     * @private
+     */
+    static get BLACK(): Color {
+        return color(0, 0, 0);
+    };
+
+    /**
+     *  Orange Color (255, 127, 0, 255)
+     * @type {_p}
+     * @private
+     */
+    static get ORANGE(): Color {
+        return color(255, 127, 0);
+    };
+
+    /**
+     *  Gray Color (166, 166, 166, 255)
+     * @type {_p}
+     * @private
+     */
+    static get GRAY(): Color {
+        return color(166, 166, 166);
+    };
 
 }
 
@@ -55,25 +135,26 @@ export class Color {
  * @example
  *
  * // 1. All channels separately as parameters
- * var color1 = cc.color(255, 255, 255, 255);
+ * var color1 = color(255, 255, 255, 255);
  *
  * // 2. Convert a hex string to a color
- * var color2 = cc.color("#000000");
+ * var color2 = color("#000000");
  *
  * // 3. An color object as parameter
- * var color3 = cc.color({r: 255, g: 255, b: 255, a: 255});
+ * var color3 = color({r: 255, g: 255, b: 255, a: 255});
  *
  * Alpha channel is optional. Default value is 255
  *
- * @param {Number|String|cc.Color} r
+ * @param {Number|String|Color} r
  * @param {Number} [g]
  * @param {Number} [b]
  * @param {Number} [a=255]
- * @return {cc.Color}
+ * @return {Color}
  */
 export function color(): Color
 export function color(r: string): Color
 export function color(r: Color): Color
+export function color(r: number, g: number, b: number): Color
 export function color(r: number, g: number, b: number, a: number): Color
 export function color(r: number | Color | string = undefined, g: number = undefined, b: number = undefined, a: number = undefined): Color {
     if (r === undefined)
@@ -82,15 +163,15 @@ export function color(r: number | Color | string = undefined, g: number = undefi
         return new Color(r.r, r.g, r.b, (r.a == null) ? 255 : r.a);
     if (typeof r === 'string')
         return hexToColor(r);
-    return new Color(r, g, b, (a == null ? 255 : a));
+    return new Color(r, g, b, (!a ? 255 : a));
 }
 
 
 /**
  * returns true if both ccColor3B are equal. Otherwise it returns false.
  * @function
- * @param {cc.Color} color1
- * @param {cc.Color} color2
+ * @param {Color} color1
+ * @param {Color} color2
  * @return {Boolean}  true if both ccColor3B are equal. Otherwise it returns false.
  */
 export function colorEqual(color1:Color, color2:Color):boolean {
@@ -99,7 +180,7 @@ export function colorEqual(color1:Color, color2:Color):boolean {
 
 /**
  * the device accelerometer reports values for each axis in units of g-force
- * @class cc.Acceleration
+ * @class Acceleration
  * @constructor
  * @param {Number} x
  * @param {Number} y
@@ -115,7 +196,7 @@ export class Acceleration {
     };
 }
 /**
- * @class cc.Vertex2F
+ * @class Vertex2F
  * @param {Number} x
  * @param {Number}y
  * @param {Array} arrayBuffer
@@ -159,7 +240,7 @@ export class Vertex2F {
 }
 
 /**
- * @class cc.Vertex3F
+ * @class Vertex3F
  * @param {Number} x
  * @param {Number} y
  * @param {Number}z
@@ -210,7 +291,7 @@ export class Vertex3F {
 
 
 /**
- * @class cc.Tex2F
+ * @class Tex2F
  * @param {Number} u
  * @param {Number} v
  * @param {Array} arrayBuffer
@@ -251,11 +332,11 @@ export class Tex2F {
 
 
 /**
- * @class cc.Quad2
- * @param {cc.Vertex2F} tl
- * @param {cc.Vertex2F} tr
- * @param {cc.Vertex2F} bl
- * @param {cc.Vertex2F} br
+ * @class Quad2
+ * @param {Vertex2F} tl
+ * @param {Vertex2F} tr
+ * @param {Vertex2F} bl
+ * @param {Vertex2F} br
  * @param {Array} arrayBuffer
  * @param {Number} offset
  * @constructor
@@ -324,230 +405,229 @@ export class Quad2 {
 
 /**
  * A 3D Quad. 4 * 3 floats
- * @Class cc.Quad3
+ * @Class Quad3
  * @Construct
- * @param {cc.Vertex3F} bl
- * @param {cc.Vertex3F} br
- * @param {cc.Vertex3F} tl
- * @param {cc.Vertex3F} tr
+ * @param {Vertex3F} bl
+ * @param {Vertex3F} br
+ * @param {Vertex3F} tl
+ * @param {Vertex3F} tr
  */
-cc.Quad3 = function (bl, br, tl, tr, arrayBuffer, offset) {
-    this._arrayBuffer = arrayBuffer || new ArrayBuffer(cc.Quad3.BYTES_PER_ELEMENT);
-    this._offset = offset || 0;
+export class Quad3 {
+    public static BYTES_PER_ELEMENT = 48;
 
-    var locArrayBuffer = this._arrayBuffer, locOffset = this._offset, locElementLen = cc.Vertex3F.BYTES_PER_ELEMENT;
-    this.bl = bl ? new cc.Vertex3F(bl.x, bl.y, bl.z, locArrayBuffer, locOffset) : new cc.Vertex3F(0, 0, 0, locArrayBuffer, locOffset);
-    locOffset += locElementLen;
-    this.br = br ? new cc.Vertex3F(br.x, br.y, br.z, locArrayBuffer, locOffset) : new cc.Vertex3F(0, 0, 0, locArrayBuffer, locOffset);
-    locOffset += locElementLen;
-    this.tl = tl ? new cc.Vertex3F(tl.x, tl.y, tl.z, locArrayBuffer, locOffset) : new cc.Vertex3F(0, 0, 0, locArrayBuffer, locOffset);
-    locOffset += locElementLen;
-    this.tr = tr ? new cc.Vertex3F(tr.x, tr.y, tr.z, locArrayBuffer, locOffset) : new cc.Vertex3F(0, 0, 0, locArrayBuffer, locOffset);
-};
-/**
- * @constant
- * @type {number}
- */
-cc.Quad3.BYTES_PER_ELEMENT = 48;
+    public _view: Float32Array;
 
+    private _arrayBuffer: ArrayBuffer;
+    private _offset: number;
+
+
+    constructor(public bl: Vertex3F = null, public br: Vertex3F = null, public tl: Vertex3F = null, public tr: Vertex3F = null, arrayBuffer: ArrayBuffer = null, offset: number = null) {
+        this._arrayBuffer = arrayBuffer || new ArrayBuffer(Vertex3F.BYTES_PER_ELEMENT);
+        this._offset = offset || 0;
+
+        var locArrayBuffer = this._arrayBuffer, locOffset = this._offset, locElementLen = Vertex3F.BYTES_PER_ELEMENT;
+        this.bl = bl ? new Vertex3F(bl.x, bl.y, bl.z, locArrayBuffer, locOffset) : new Vertex3F(0, 0, 0, locArrayBuffer, locOffset);
+        locOffset += locElementLen;
+        this.br = br ? new Vertex3F(br.x, br.y, br.z, locArrayBuffer, locOffset) : new Vertex3F(0, 0, 0, locArrayBuffer, locOffset);
+        locOffset += locElementLen;
+        this.tl = tl ? new Vertex3F(tl.x, tl.y, tl.z, locArrayBuffer, locOffset) : new Vertex3F(0, 0, 0, locArrayBuffer, locOffset);
+        locOffset += locElementLen;
+        this.tr = tr ? new Vertex3F(tr.x, tr.y, tr.z, locArrayBuffer, locOffset) : new Vertex3F(0, 0, 0, locArrayBuffer, locOffset);
+    }
+}
 /**
- * @class cc.V3F_C4B_T2F
- * @param {cc.Vertex3F} vertices
- * @param {cc.Color} colors
- * @param {cc.Tex2F} texCoords
+ * @class V3F_C4B_T2F
+ * @param {Vertex3F} vertices
+ * @param {Color} colors
+ * @param {Tex2F} texCoords
  * @param {Array} arrayBuffer
  * @param {Number} offset
  * @constructor
  */
-cc.V3F_C4B_T2F = function (vertices, colors, texCoords, arrayBuffer, offset) {
-    this._arrayBuffer = arrayBuffer || new ArrayBuffer(cc.V3F_C4B_T2F.BYTES_PER_ELEMENT);
-    this._offset = offset || 0;
+export class V3F_C4B_T2F {
+    public static BYTES_PER_ELEMENT = 24;
 
-    var locArrayBuffer = this._arrayBuffer, locOffset = this._offset;
-    this._vertices = vertices ? new cc.Vertex3F(vertices.x, vertices.y, vertices.z, locArrayBuffer, locOffset) :
-        new cc.Vertex3F(0, 0, 0, locArrayBuffer, locOffset);
+    public _view: Float32Array;
 
-    locOffset += cc.Vertex3F.BYTES_PER_ELEMENT;
-    this._colors = colors ? new cc._WebGLColor(colors.r, colors.g, colors.b, colors.a, locArrayBuffer, locOffset) :
-        new cc._WebGLColor(0, 0, 0, 0, locArrayBuffer, locOffset);
+    private _arrayBuffer: ArrayBuffer;
+    private _offset: number;
+    private _vertices: Vertex3F;
+    private _colors: Color;
+    private _texCoords: Tex2F;
 
-    locOffset += cc._WebGLColor.BYTES_PER_ELEMENT;
-    this._texCoords = texCoords ? new cc.Tex2F(texCoords.u, texCoords.v, locArrayBuffer, locOffset) :
-        new cc.Tex2F(0, 0, locArrayBuffer, locOffset);
-};
+
+
+    constructor(vertices: Vertex3F = null, colors: Color = null, texCoords: Tex2F = null, arrayBuffer: ArrayBuffer = null, offset: number = null) {
+        this._arrayBuffer = arrayBuffer || new ArrayBuffer(V3F_C4B_T2F.BYTES_PER_ELEMENT);
+        this._offset = offset || 0;
+
+        var locArrayBuffer = this._arrayBuffer, locOffset = this._offset;
+        this._vertices = vertices ? new Vertex3F(vertices.x, vertices.y, vertices.z, locArrayBuffer, locOffset) :
+            new Vertex3F(0, 0, 0, locArrayBuffer, locOffset);
+
+        locOffset += Vertex3F.BYTES_PER_ELEMENT;
+        this._colors = colors ? new _WebGLColor(colors.r, colors.g, colors.b, colors.a, locArrayBuffer, locOffset) :
+            new _WebGLColor(0, 0, 0, 0, locArrayBuffer, locOffset);
+
+        locOffset += _WebGLColor.BYTES_PER_ELEMENT;
+        this._texCoords = texCoords ? new Tex2F(texCoords.u, texCoords.v, locArrayBuffer, locOffset) :
+            new Tex2F(0, 0, locArrayBuffer, locOffset);
+    }
+    get vertices(): Vertex3F {
+        return this._vertices;
+    }
+    set vertices(verticesValue: Vertex3F) {
+        var locVertices = this._vertices;
+        locVertices._view[0] = verticesValue.x;
+        locVertices._view[1] = verticesValue.y;
+        locVertices._view[2] = verticesValue.z;
+    }
+    get colors(): Color {
+        return this._colors;
+    }
+    set colors(colorValue: Color) {
+        var locColors = this._colors;
+        locColors.r = colorValue.r;
+        locColors.g = colorValue.g;
+        locColors.b = colorValue.b;
+        locColors.a = colorValue.a;
+    }
+    get texCoords(): Tex2F {
+        return this._texCoords;
+    }
+    set texCoords(texValue: Tex2F) {
+        this._texCoords._view[0] = texValue.u;
+        this._texCoords._view[1] = texValue.v;
+    }
+
+
+}
+
 /**
- * @constant
- * @type {number}
- */
-cc.V3F_C4B_T2F.BYTES_PER_ELEMENT = 24;
-
-_p = cc.V3F_C4B_T2F.prototype;
-_p._getVertices = function () {
-    return this._vertices;
-};
-_p._setVertices = function (verticesValue) {
-    var locVertices = this._vertices;
-    locVertices._view[0] = verticesValue.x;
-    locVertices._view[1] = verticesValue.y;
-    locVertices._view[2] = verticesValue.z;
-};
-_p._getColor = function () {
-    return this._colors;
-};
-_p._setColor = function (colorValue) {
-    var locColors = this._colors;
-    locColors._view[0] = colorValue.r;
-    locColors._view[1] = colorValue.g;
-    locColors._view[2] = colorValue.b;
-    locColors._view[3] = colorValue.a;
-};
-_p._getTexCoords = function () {
-    return this._texCoords;
-};
-_p._setTexCoords = function (texValue) {
-    this._texCoords._view[0] = texValue.u;
-    this._texCoords._view[1] = texValue.v;
-};
-/** @expose */
-_p.vertices;
-cc.defineGetterSetter(_p, "vertices", _p._getVertices, _p._setVertices);
-/** @expose */
-_p.colors;
-cc.defineGetterSetter(_p, "colors", _p._getColor, _p._setColor);
-/** @expose */
-_p.texCoords;
-cc.defineGetterSetter(_p, "texCoords", _p._getTexCoords, _p._setTexCoords);
-
-/**
- * @cc.class cc.V3F_C4B_T2F_Quad
- * @param {cc.V3F_C4B_T2F} tl
- * @param {cc.V3F_C4B_T2F} bl
- * @param {cc.V3F_C4B_T2F} tr
- * @param {cc.V3F_C4B_T2F} br
+ * @class V3F_C4B_T2F_Quad
+ * @param {V3F_C4B_T2F} tl
+ * @param {V3F_C4B_T2F} bl
+ * @param {V3F_C4B_T2F} tr
+ * @param {V3F_C4B_T2F} br
  * @param {Array} arrayBuffer
  * @param {Number} offset
  * @constructor
  */
-cc.V3F_C4B_T2F_Quad = function (tl, bl, tr, br, arrayBuffer, offset) {
-    this._arrayBuffer = arrayBuffer || new ArrayBuffer(cc.V3F_C4B_T2F_Quad.BYTES_PER_ELEMENT);
-    this._offset = offset || 0;
+export class V3F_C4B_T2F_Quad {
 
-    var locArrayBuffer = this._arrayBuffer, locOffset = this._offset, locElementLen = cc.V3F_C4B_T2F.BYTES_PER_ELEMENT;
-    this._tl = tl ? new cc.V3F_C4B_T2F(tl.vertices, tl.colors, tl.texCoords, locArrayBuffer, locOffset) :
-        new cc.V3F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
-    locOffset += locElementLen;
-    this._bl = bl ? new cc.V3F_C4B_T2F(bl.vertices, bl.colors, bl.texCoords, locArrayBuffer, locOffset) :
-        new cc.V3F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
-    locOffset += locElementLen;
-    this._tr = tr ? new cc.V3F_C4B_T2F(tr.vertices, tr.colors, tr.texCoords, locArrayBuffer, locOffset) :
-        new cc.V3F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
-    locOffset += locElementLen;
-    this._br = br ? new cc.V3F_C4B_T2F(br.vertices, br.colors, br.texCoords, locArrayBuffer, locOffset) :
-        new cc.V3F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
-};
-/**
- * @constant
- * @type {number}
- */
-cc.V3F_C4B_T2F_Quad.BYTES_PER_ELEMENT = 96;
-_p = cc.V3F_C4B_T2F_Quad.prototype;
-_p._getTL = function () {
-    return this._tl;
-};
-_p._setTL = function (tlValue) {
-    var locTl = this._tl;
-    locTl.vertices = tlValue.vertices;
-    locTl.colors = tlValue.colors;
-    locTl.texCoords = tlValue.texCoords;
-};
-_p._getBL = function () {
-    return this._bl;
-};
-_p._setBL = function (blValue) {
-    var locBl = this._bl;
-    locBl.vertices = blValue.vertices;
-    locBl.colors = blValue.colors;
-    locBl.texCoords = blValue.texCoords;
-};
-_p._getTR = function () {
-    return this._tr;
-};
-_p._setTR = function (trValue) {
-    var locTr = this._tr;
-    locTr.vertices = trValue.vertices;
-    locTr.colors = trValue.colors;
-    locTr.texCoords = trValue.texCoords;
-};
-_p._getBR = function () {
-    return this._br;
-};
-_p._setBR = function (brValue) {
-    var locBr = this._br;
-    locBr.vertices = brValue.vertices;
-    locBr.colors = brValue.colors;
-    locBr.texCoords = brValue.texCoords;
-};
-_p._getArrayBuffer = function () {
-    return this._arrayBuffer;
-};
+    public static BYTES_PER_ELEMENT = 96;
 
-/** @expose */
-_p.tl;
-cc.defineGetterSetter(_p, "tl", _p._getTL, _p._setTL);
-/** @expose */
-_p.tr;
-cc.defineGetterSetter(_p, "tr", _p._getTR, _p._setTR);
-/** @expose */
-_p.bl;
-cc.defineGetterSetter(_p, "bl", _p._getBL, _p._setBL);
-/** @expose */
-_p.br;
-cc.defineGetterSetter(_p, "br", _p._getBR, _p._setBR);
-/** @expose */
-_p.arrayBuffer;
-cc.defineGetterSetter(_p, "arrayBuffer", _p._getArrayBuffer, null);
+    public _view: Float32Array;
 
-/**
- * @function
- * @returns {cc.V3F_C4B_T2F_Quad}
- */
-cc.V3F_C4B_T2F_QuadZero = function () {
-    return new cc.V3F_C4B_T2F_Quad();
-};
+    private _arrayBuffer: ArrayBuffer;
+    private _offset: number;
+    private _tl: V3F_C4B_T2F;
+    private _bl: V3F_C4B_T2F;
+    private _tr: V3F_C4B_T2F;
+    private _br: V3F_C4B_T2F;
 
-/**
- * @function
- * @param {cc.V3F_C4B_T2F_Quad} sourceQuad
- * @return {cc.V3F_C4B_T2F_Quad}
- */
-cc.V3F_C4B_T2F_QuadCopy = function (sourceQuad) {
-    if (!sourceQuad)
-        return cc.V3F_C4B_T2F_QuadZero();
 
-    //return new cc.V3F_C4B_T2F_Quad(sourceQuad,tl,sourceQuad,bl,sourceQuad.tr,sourceQuad.br,null,0);
-    var srcTL = sourceQuad.tl, srcBL = sourceQuad.bl, srcTR = sourceQuad.tr, srcBR = sourceQuad.br;
-    return {
-        tl: {
-            vertices: { x: srcTL.vertices.x, y: srcTL.vertices.y, z: srcTL.vertices.z },
-            colors: { r: srcTL.colors.r, g: srcTL.colors.g, b: srcTL.colors.b, a: srcTL.colors.a },
-            texCoords: { u: srcTL.texCoords.u, v: srcTL.texCoords.v }
-        },
-        bl: {
-            vertices: { x: srcBL.vertices.x, y: srcBL.vertices.y, z: srcBL.vertices.z },
-            colors: { r: srcBL.colors.r, g: srcBL.colors.g, b: srcBL.colors.b, a: srcBL.colors.a },
-            texCoords: { u: srcBL.texCoords.u, v: srcBL.texCoords.v }
-        },
-        tr: {
-            vertices: { x: srcTR.vertices.x, y: srcTR.vertices.y, z: srcTR.vertices.z },
-            colors: { r: srcTR.colors.r, g: srcTR.colors.g, b: srcTR.colors.b, a: srcTR.colors.a },
-            texCoords: { u: srcTR.texCoords.u, v: srcTR.texCoords.v }
-        },
-        br: {
-            vertices: { x: srcBR.vertices.x, y: srcBR.vertices.y, z: srcBR.vertices.z },
-            colors: { r: srcBR.colors.r, g: srcBR.colors.g, b: srcBR.colors.b, a: srcBR.colors.a },
-            texCoords: { u: srcBR.texCoords.u, v: srcBR.texCoords.v }
-        }
+    constructor(tl: V3F_C4B_T2F = null, bl: V3F_C4B_T2F = null, tr: V3F_C4B_T2F = null, br: V3F_C4B_T2F = null, arrayBuffer: ArrayBuffer = null, offset: number = null) {
+        this._arrayBuffer = arrayBuffer || new ArrayBuffer(V3F_C4B_T2F_Quad.BYTES_PER_ELEMENT);
+        this._offset = offset || 0;
+
+        var locArrayBuffer = this._arrayBuffer, locOffset = this._offset, locElementLen = V3F_C4B_T2F.BYTES_PER_ELEMENT;
+        this._tl = tl ? new V3F_C4B_T2F(tl.vertices, tl.colors, tl.texCoords, locArrayBuffer, locOffset) :
+            new V3F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
+        locOffset += locElementLen;
+        this._bl = bl ? new V3F_C4B_T2F(bl.vertices, bl.colors, bl.texCoords, locArrayBuffer, locOffset) :
+            new V3F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
+        locOffset += locElementLen;
+        this._tr = tr ? new V3F_C4B_T2F(tr.vertices, tr.colors, tr.texCoords, locArrayBuffer, locOffset) :
+            new V3F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
+        locOffset += locElementLen;
+        this._br = br ? new V3F_C4B_T2F(br.vertices, br.colors, br.texCoords, locArrayBuffer, locOffset) :
+            new V3F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
+    }
+
+    get tl(): V3F_C4B_T2F {
+        return this._tl;
     };
+    set tl(tlValue: V3F_C4B_T2F) {
+        var locTl = this._tl;
+        locTl.vertices = tlValue.vertices;
+        locTl.colors = tlValue.colors;
+        locTl.texCoords = tlValue.texCoords;
+    };
+    get bl(): V3F_C4B_T2F {
+        return this._bl;
+    };
+    set bl(blValue: V3F_C4B_T2F) {
+        var locBl = this._bl;
+        locBl.vertices = blValue.vertices;
+        locBl.colors = blValue.colors;
+        locBl.texCoords = blValue.texCoords;
+    };
+    get tr(): V3F_C4B_T2F {
+        return this._tr;
+    };
+    set tr(trValue: V3F_C4B_T2F) {
+        var locTr = this._tr;
+        locTr.vertices = trValue.vertices;
+        locTr.colors = trValue.colors;
+        locTr.texCoords = trValue.texCoords;
+    };
+    get br(): V3F_C4B_T2F {
+        return this._br;
+    };
+    set br(brValue: V3F_C4B_T2F) {
+        var locBr = this._br;
+        locBr.vertices = brValue.vertices;
+        locBr.colors = brValue.colors;
+        locBr.texCoords = brValue.texCoords;
+    };
+    get arrayBuffer(): ArrayBuffer {
+        return this._arrayBuffer;
+    };
+
+
+
+}
+
+/**
+ * @function
+ * @returns {V3F_C4B_T2F_Quad}
+ */
+export function V3F_C4B_T2F_QuadZero(): V3F_C4B_T2F_Quad {
+    return new V3F_C4B_T2F_Quad();
+};
+
+/**
+ * @function
+ * @param {V3F_C4B_T2F_Quad} sourceQuad
+ * @return {V3F_C4B_T2F_Quad}
+ */
+export function V3F_C4B_T2F_QuadCopy(sourceQuad: V3F_C4B_T2F_Quad): V3F_C4B_T2F_Quad {
+    if (!sourceQuad)
+        return V3F_C4B_T2F_QuadZero();
+
+    //return new V3F_C4B_T2F_Quad(sourceQuad,tl,sourceQuad,bl,sourceQuad.tr,sourceQuad.br,null,0);
+    var srcTL = sourceQuad.tl, srcBL = sourceQuad.bl, srcTR = sourceQuad.tr, srcBR = sourceQuad.br;
+
+    var tl = new V3F_C4B_T2F(new Vertex3F(srcTL.vertices.x, srcTL.vertices.y, srcTL.vertices.z),
+        new Color(srcTL.colors.r, srcTL.colors.g, srcTL.colors.b, srcTL.colors.a),
+        new Tex2F(srcTL.texCoords.u, srcTL.texCoords.v)
+    )
+    var bl = new V3F_C4B_T2F(new Vertex3F(srcBL.vertices.x, srcBL.vertices.y, srcBL.vertices.z),
+        new Color(srcBL.colors.r, srcBL.colors.g, srcBL.colors.b, srcBL.colors.a),
+        new Tex2F(srcBL.texCoords.u, srcBL.texCoords.v)
+    )
+    var tr = new V3F_C4B_T2F(new Vertex3F(srcTR.vertices.x, srcTR.vertices.y, srcTR.vertices.z),
+        new Color(srcTR.colors.r, srcTR.colors.g, srcTR.colors.b, srcTR.colors.a),
+        new Tex2F(srcTR.texCoords.u, srcTR.texCoords.v)
+    )
+    var br = new V3F_C4B_T2F(new Vertex3F(srcBR.vertices.x, srcBR.vertices.y, srcBR.vertices.z),
+        new Color(srcBR.colors.r, srcBR.colors.g, srcBR.colors.b, srcBR.colors.a),
+        new Tex2F(srcBR.texCoords.u, srcBR.texCoords.v)
+    )
+
+    return new V3F_C4B_T2F_Quad(tl, bl, tr, br);
+
 };
 
 /**
@@ -555,160 +635,161 @@ cc.V3F_C4B_T2F_QuadCopy = function (sourceQuad) {
  * @param {Array} sourceQuads
  * @returns {Array}
  */
-cc.V3F_C4B_T2F_QuadsCopy = function (sourceQuads) {
+export function V3F_C4B_T2F_QuadsCopy(sourceQuads: Array<V3F_C4B_T2F_Quad>): Array<V3F_C4B_T2F_Quad> {
+    var retArr = new Array<V3F_C4B_T2F_Quad>();
     if (!sourceQuads)
-        return [];
+        return retArr;
 
-    var retArr = [];
     for (var i = 0; i < sourceQuads.length; i++) {
-        retArr.push(cc.V3F_C4B_T2F_QuadCopy(sourceQuads[i]));
+        retArr.push(V3F_C4B_T2F_QuadCopy(sourceQuads[i]));
     }
     return retArr;
 };
 
-//redefine cc.V2F_C4B_T2F
+//redefine V2F_C4B_T2F
 /**
- * @class cc.V2F_C4B_T2F
- * @param {cc.Vertex2F} vertices
- * @param {cc.Color} colors
- * @param {cc.Tex2F} texCoords
+ * @class V2F_C4B_T2F
+ * @param {Vertex2F} vertices
+ * @param {Color} colors
+ * @param {Tex2F} texCoords
  * @param {Array} arrayBuffer
  * @param {Number} offset
  * @constructor
  */
-cc.V2F_C4B_T2F = function (vertices, colors, texCoords, arrayBuffer, offset) {
-    this._arrayBuffer = arrayBuffer || new ArrayBuffer(cc.V2F_C4B_T2F.BYTES_PER_ELEMENT);
-    this._offset = offset || 0;
+export class V2F_C4B_T2F {
+    public static BYTES_PER_ELEMENT = 20;
 
-    var locArrayBuffer = this._arrayBuffer, locOffset = this._offset;
-    this._vertices = vertices ? new cc.Vertex2F(vertices.x, vertices.y, locArrayBuffer, locOffset) :
-        new cc.Vertex2F(0, 0, locArrayBuffer, locOffset);
-    locOffset += cc.Vertex2F.BYTES_PER_ELEMENT;
-    this._colors = colors ? new cc._WebGLColor(colors.r, colors.g, colors.b, colors.a, locArrayBuffer, locOffset) :
-        new cc._WebGLColor(0, 0, 0, 0, locArrayBuffer, locOffset);
-    locOffset += cc._WebGLColor.BYTES_PER_ELEMENT;
-    this._texCoords = texCoords ? new cc.Tex2F(texCoords.u, texCoords.v, locArrayBuffer, locOffset) :
-        new cc.Tex2F(0, 0, locArrayBuffer, locOffset);
-};
+    public _view: Float32Array;
 
+    private _arrayBuffer: ArrayBuffer;
+    private _offset: number;
+    private _vertices: Vertex2F;
+    private _colors: Color;
+    private _texCoords: Tex2F;
+
+
+
+    constructor(vertices: Vertex2F = null, colors: Color = null, texCoords: Tex2F = null, arrayBuffer: ArrayBuffer = null, offset: number = null) {
+        this._arrayBuffer = arrayBuffer || new ArrayBuffer(V2F_C4B_T2F.BYTES_PER_ELEMENT);
+        this._offset = offset || 0;
+
+        var locArrayBuffer = this._arrayBuffer, locOffset = this._offset;
+        this._vertices = vertices ? new Vertex2F(vertices.x, vertices.y, locArrayBuffer, locOffset) :
+            new Vertex2F(0, 0, locArrayBuffer, locOffset);
+        locOffset += Vertex2F.BYTES_PER_ELEMENT;
+        this._colors = colors ? new _WebGLColor(colors.r, colors.g, colors.b, colors.a, locArrayBuffer, locOffset) :
+            new _WebGLColor(0, 0, 0, 0, locArrayBuffer, locOffset);
+        locOffset += _WebGLColor.BYTES_PER_ELEMENT;
+        this._texCoords = texCoords ? new Tex2F(texCoords.u, texCoords.v, locArrayBuffer, locOffset) :
+            new Tex2F(0, 0, locArrayBuffer, locOffset);
+    }
+
+
+    get vertices(): Vertex2F {
+        return this._vertices;
+    };
+    set vertices(verticesValue: Vertex2F) {
+        this._vertices._view[0] = verticesValue.x;
+        this._vertices._view[1] = verticesValue.y;
+    };
+    get colors(): Color {
+        return this._colors;
+    };
+    set colors(colorValue: Color) {
+        var locColors = this._colors;
+        locColors.r = colorValue.r;
+        locColors.g = colorValue.g;
+        locColors.b = colorValue.b;
+        locColors.a = colorValue.a;
+    };
+    get texCoords(): Tex2F {
+        return this._texCoords;
+    };
+    set texCoords(texValue: Tex2F) {
+        this._texCoords._view[0] = texValue.u;
+        this._texCoords._view[1] = texValue.v;
+    };
+
+}
+
+//redefine V2F_C4B_T2F_Triangle
 /**
- * @constant
- * @type {number}
- */
-cc.V2F_C4B_T2F.BYTES_PER_ELEMENT = 20;
-_p = cc.V2F_C4B_T2F.prototype;
-_p._getVertices = function () {
-    return this._vertices;
-};
-_p._setVertices = function (verticesValue) {
-    this._vertices._view[0] = verticesValue.x;
-    this._vertices._view[1] = verticesValue.y;
-};
-_p._getColor = function () {
-    return this._colors;
-};
-_p._setColor = function (colorValue) {
-    var locColors = this._colors;
-    locColors._view[0] = colorValue.r;
-    locColors._view[1] = colorValue.g;
-    locColors._view[2] = colorValue.b;
-    locColors._view[3] = colorValue.a;
-};
-_p._getTexCoords = function () {
-    return this._texCoords;
-};
-_p._setTexCoords = function (texValue) {
-    this._texCoords._view[0] = texValue.u;
-    this._texCoords._view[1] = texValue.v;
-};
-
-/** @expose */
-_p.vertices;
-cc.defineGetterSetter(_p, "vertices", _p._getVertices, _p._setVertices);
-/** @expose */
-_p.colors;
-cc.defineGetterSetter(_p, "colors", _p._getColor, _p._setColor);
-/** @expose */
-_p.texCoords;
-cc.defineGetterSetter(_p, "texCoords", _p._getTexCoords, _p._setTexCoords);
-
-//redefine cc.V2F_C4B_T2F_Triangle
-/**
- * @class cc.V2F_C4B_T2F_Triangle
- * @param {cc.V2F_C4B_T2F} a
- * @param {cc.V2F_C4B_T2F} b
- * @param {cc.V2F_C4B_T2F} c
+ * @class V2F_C4B_T2F_Triangle
+ * @param {V2F_C4B_T2F} a
+ * @param {V2F_C4B_T2F} b
+ * @param {V2F_C4B_T2F} c
  * @param {Array} arrayBuffer
  * @param {Number} offset
  * @constructor
  */
-cc.V2F_C4B_T2F_Triangle = function (a, b, c, arrayBuffer, offset) {
-    this._arrayBuffer = arrayBuffer || new ArrayBuffer(cc.V2F_C4B_T2F_Triangle.BYTES_PER_ELEMENT);
-    this._offset = offset || 0;
+export class V2F_C4B_T2F_Triangle {
 
-    var locArrayBuffer = this._arrayBuffer, locOffset = this._offset, locElementLen = cc.V2F_C4B_T2F.BYTES_PER_ELEMENT;
-    this._a = a ? new cc.V2F_C4B_T2F(a.vertices, a.colors, a.texCoords, locArrayBuffer, locOffset) :
-        new cc.V2F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
-    locOffset += locElementLen;
-    this._b = b ? new cc.V2F_C4B_T2F(b.vertices, b.colors, b.texCoords, locArrayBuffer, locOffset) :
-        new cc.V2F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
-    locOffset += locElementLen;
-    this._c = c ? new cc.V2F_C4B_T2F(c.vertices, c.colors, c.texCoords, locArrayBuffer, locOffset) :
-        new cc.V2F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
-};
-/**
- * @constant
- * @type {number}
- */
-cc.V2F_C4B_T2F_Triangle.BYTES_PER_ELEMENT = 60;
-_p = cc.V2F_C4B_T2F_Triangle.prototype;
-_p._getA = function () {
-    return this._a;
-};
-_p._setA = function (aValue) {
-    var locA = this._a;
-    locA.vertices = aValue.vertices;
-    locA.colors = aValue.colors;
-    locA.texCoords = aValue.texCoords;
-};
-_p._getB = function () {
-    return this._b;
-};
-_p._setB = function (bValue) {
-    var locB = this._b;
-    locB.vertices = bValue.vertices;
-    locB.colors = bValue.colors;
-    locB.texCoords = bValue.texCoords;
-};
-_p._getC = function () {
-    return this._c;
-};
-_p._setC = function (cValue) {
-    var locC = this._c;
-    locC.vertices = cValue.vertices;
-    locC.colors = cValue.colors;
-    locC.texCoords = cValue.texCoords;
-};
+    public static BYTES_PER_ELEMENT = 60;
 
-/** @expose */
-_p.a;
-cc.defineGetterSetter(_p, "a", _p._getA, _p._setA);
-/** @expose */
-_p.b;
-cc.defineGetterSetter(_p, "b", _p._getB, _p._setB);
-/** @expose */
-_p.c;
-cc.defineGetterSetter(_p, "c", _p._getC, _p._setC);
+    public _view: Float32Array;
+
+    private _arrayBuffer: ArrayBuffer;
+    private _offset: number;
+    private _a: V2F_C4B_T2F;
+    private _b: V2F_C4B_T2F;
+    private _c: V2F_C4B_T2F;
+
+
+    constructor(a: V2F_C4B_T2F = null, b: V2F_C4B_T2F = null, c: V2F_C4B_T2F = null, arrayBuffer: ArrayBuffer = null, offset: number = null) {
+        this._arrayBuffer = arrayBuffer || new ArrayBuffer(V2F_C4B_T2F_Triangle.BYTES_PER_ELEMENT);
+        this._offset = offset || 0;
+
+        var locArrayBuffer = this._arrayBuffer, locOffset = this._offset, locElementLen = V2F_C4B_T2F.BYTES_PER_ELEMENT;
+        this._a = a ? new V2F_C4B_T2F(a.vertices, a.colors, a.texCoords, locArrayBuffer, locOffset) :
+            new V2F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
+        locOffset += locElementLen;
+        this._b = b ? new V2F_C4B_T2F(b.vertices, b.colors, b.texCoords, locArrayBuffer, locOffset) :
+            new V2F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
+        locOffset += locElementLen;
+        this._c = c ? new V2F_C4B_T2F(c.vertices, c.colors, c.texCoords, locArrayBuffer, locOffset) :
+            new V2F_C4B_T2F(null, null, null, locArrayBuffer, locOffset);
+    }
+
+
+    get a(): V2F_C4B_T2F {
+        return this._a;
+    };
+    set a(aValue: V2F_C4B_T2F) {
+        var locA = this._a;
+        locA.vertices = aValue.vertices;
+        locA.colors = aValue.colors;
+        locA.texCoords = aValue.texCoords;
+    };
+    get b(): V2F_C4B_T2F {
+        return this._b;
+    };
+    set b(bValue: V2F_C4B_T2F) {
+        var locB = this._b;
+        locB.vertices = bValue.vertices;
+        locB.colors = bValue.colors;
+        locB.texCoords = bValue.texCoords;
+    };
+    get c(): V2F_C4B_T2F {
+        return this._c;
+    };
+    set c(cValue: V2F_C4B_T2F) {
+        var locC = this._c;
+        locC.vertices = cValue.vertices;
+        locC.colors = cValue.colors;
+        locC.texCoords = cValue.texCoords;
+    };
+
+}
 
 /**
  * Helper macro that creates an Vertex2F type composed of 2 floats: x, y
  * @function
  * @param {Number} x
  * @param {Number} y
- * @return {cc.Vertex2F}
+ * @return {Vertex2F}
  */
-cc.vertex2 = function (x, y) {
-    return new cc.Vertex2F(x, y);
+export function vertex2(x:number, y:number): Vertex2F {
+    return new Vertex2F(x, y);
 };
 
 /**
@@ -717,10 +798,10 @@ cc.vertex2 = function (x, y) {
  * @param {Number} x
  * @param {Number} y
  * @param {Number} z
- * @return {cc.Vertex3F}
+ * @return {Vertex3F}
  */
-cc.vertex3 = function (x, y, z) {
-    return new cc.Vertex3F(x, y, z);
+export function vertex3(x: number, y: number, z: number): Vertex3F {
+    return new Vertex3F(x, y, z);
 };
 
 /**
@@ -728,128 +809,156 @@ cc.vertex3 = function (x, y, z) {
  * @function
  * @param {Number} u
  * @param {Number} v
- * @return {cc.Tex2F}
+ * @return {Tex2F}
  */
-cc.tex2 = function (u, v) {
-    return new cc.Tex2F(u, v);
+export function tex2(u: number, v: number): Tex2F {
+    return new Tex2F(u, v);
 };
 
 /**
  * Blend Function used for textures
- * @Class cc.BlendFunc
+ * @Class BlendFunc
  * @Constructor
  * @param {Number} src1 source blend function
  * @param {Number} dst1 destination blend function
  */
-cc.BlendFunc = function (src1, dst1) {
-    this.src = src1;
-    this.dst = dst1;
-};
+export class BlendFunc {
+    constructor(public src1: number, public dst1: number) {
+
+    }
+
+
+
+
+    static get _disable(): BlendFunc {
+        return new BlendFunc(macro.ONE, macro.ZERO);
+    };
+    static get _alphaPremultiplied(): BlendFunc {
+        return new BlendFunc(macro.ONE, macro.ONE_MINUS_SRC_ALPHA);
+    };
+    static get _alphaNonPremultiplied(): BlendFunc {
+        return new BlendFunc(macro.SRC_ALPHA, macro.ONE_MINUS_SRC_ALPHA);
+    };
+    static get _additive(): BlendFunc {
+        return new BlendFunc(macro.SRC_ALPHA, macro.ONE);
+    };
+
+}
 
 /**
  * @function
- * @returns {cc.BlendFunc}
+ * @returns {BlendFunc}
  */
-cc.blendFuncDisable = function () {
-    return new cc.BlendFunc(cc.ONE, cc.ZERO);
+export function blendFuncDisable(): BlendFunc {
+    return new BlendFunc(macro.ONE, macro.ZERO);
 };
 
 /**
  * convert a string of color for style to Color.
- * e.g. "#ff06ff"  to : cc.color(255,6,255)
+ * e.g. "#ff06ff"  to : color(255,6,255)
  * @function
  * @param {String} hex
- * @return {cc.Color}
+ * @return {Color}
  */
-cc.hexToColor = function (hex) {
+export function hexToColor(hex:string):Color {
     hex = hex.replace(/^#?/, "0x");
     var c = parseInt(hex);
     var r = c >> 16;
     var g = (c >> 8) % 256;
     var b = c % 256;
-    return new cc.Color(r, g, b);
+    return new Color(r, g, b);
 };
 
 /**
  * convert Color to a string of color for style.
- * e.g.  cc.color(255,6,255)  to : "#ff06ff"
+ * e.g.  color(255,6,255)  to : "#ff06ff"
  * @function
- * @param {cc.Color} color
+ * @param {Color} color
  * @return {String}
  */
-cc.colorToHex = function (color) {
+export function colorToHex(color:Color):string {
     var hR = color.r.toString(16), hG = color.g.toString(16), hB = color.b.toString(16);
     return "#" + (color.r < 16 ? ("0" + hR) : hR) + (color.g < 16 ? ("0" + hG) : hG) + (color.b < 16 ? ("0" + hB) : hB);
 };
 
-/**
- * text alignment : left
- * @constant
- * @type Number
- */
-cc.TEXT_ALIGNMENT_LEFT = 0;
 
-/**
- * text alignment : center
- * @constant
- * @type Number
- */
-cc.TEXT_ALIGNMENT_CENTER = 1;
 
-/**
- * text alignment : right
- * @constant
- * @type Number
- */
-cc.TEXT_ALIGNMENT_RIGHT = 2;
 
-/**
- * text alignment : top
- * @constant
- * @type Number
- */
-cc.VERTICAL_TEXT_ALIGNMENT_TOP = 0;
+export enum HorizontalAlignment {
+    /**
+     * text alignment : left
+     * @constant
+     * @type Number
+     */
+    TEXT_ALIGNMENT_LEFT = 0,
 
-/**
- * text alignment : center
- * @constant
- * @type Number
- */
-cc.VERTICAL_TEXT_ALIGNMENT_CENTER = 1;
+    /**
+     * text alignment : center
+     * @constant
+     * @type Number
+     */
+    TEXT_ALIGNMENT_CENTER = 1,
 
-/**
- * text alignment : bottom
- * @constant
- * @type Number
- */
-cc.VERTICAL_TEXT_ALIGNMENT_BOTTOM = 2;
+    /**
+     * text alignment : right
+     * @constant
+     * @type Number
+     */
+    TEXT_ALIGNMENT_RIGHT = 2,
 
-cc._Dictionary = cc.Class.extend({
-    _keyMapTb: null,
-    _valueMapTb: null,
-    __currId: 0,
+}
+export enum VerticalAlignment {
+    /**
+     * text alignment : top
+     * @constant
+     * @type Number
+     */
+    VERTICAL_TEXT_ALIGNMENT_TOP = 0,
 
-    ctor: function () {
+    /**
+     * text alignment : center
+     * @constant
+     * @type Number
+     */
+    VERTICAL_TEXT_ALIGNMENT_CENTER = 1,
+
+    /**
+     * text alignment : bottom
+     * @constant
+     * @type Number
+     */
+    VERTICAL_TEXT_ALIGNMENT_BOTTOM = 2
+}
+
+
+
+export class _Dictionary<keyType, objType> extends ccClass {
+    private _keyMapTb:any = null;
+    private _valueMapTb:any = null;
+    private __currId = 0;
+
+    constructor() {
+        super();
         this._keyMapTb = {};
         this._valueMapTb = {};
         this.__currId = 2 << (0 | (Math.random() * 10));
-    },
+    }
 
-    __getKey: function () {
+    private __getKey():string {
         this.__currId++;
         return "key_" + this.__currId;
-    },
+    }
 
-    setObject: function (value, key) {
+    setObject(value: objType, key: keyType):void {
         if (key == null)
             return;
 
         var keyId = this.__getKey();
         this._keyMapTb[keyId] = key;
         this._valueMapTb[keyId] = value;
-    },
+    }
 
-    objectForKey: function (key) {
+    objectForKey(key: keyType): objType {
         if (key == null)
             return null;
 
@@ -859,13 +968,13 @@ cc._Dictionary = cc.Class.extend({
                 return this._valueMapTb[keyId];
         }
         return null;
-    },
+    }
 
-    valueForKey: function (key) {
+    valueForKey(key: keyType): objType {
         return this.objectForKey(key);
-    },
+    }
 
-    removeObjectForKey: function (key) {
+    removeObjectForKey(key: keyType):void {
         if (key == null)
             return;
 
@@ -877,275 +986,129 @@ cc._Dictionary = cc.Class.extend({
                 return;
             }
         }
-    },
+    }
 
-    removeObjectsForKeys: function (keys) {
+    removeObjectsForKeys(keys: Array<keyType>):void {
         if (keys == null)
             return;
 
         for (var i = 0; i < keys.length; i++)
             this.removeObjectForKey(keys[i]);
-    },
+    }
 
-    allKeys: function () {
+    allKeys(): Array<keyType> {
         var keyArr = [], locKeyMapTb = this._keyMapTb;
         for (var key in locKeyMapTb)
             keyArr.push(locKeyMapTb[key]);
         return keyArr;
-    },
+    }
 
-    removeAllObjects: function () {
+    removeAllObjects():void {
         this._keyMapTb = {};
         this._valueMapTb = {};
-    },
+    }
 
-    count: function () {
+    count():number {
         return this.allKeys().length;
     }
-});
+}
 
 /**
  * Common usage:
  *
- * var fontDef = new cc.FontDefinition();
+ * var fontDef = new FontDefinition();
  * fontDef.fontName = "Arial";
  * fontDef.fontSize = 12;
  * ...
  *
  * OR using inline definition useful for constructor injection
  *
- * var fontDef = new cc.FontDefinition({
+ * var fontDef = new FontDefinition({
  *  fontName: "Arial",
  *  fontSize: 12
  * });
  *
  *
  *
- * @class cc.FontDefinition
+ * @class FontDefinition
  * @param {Object} properties - (OPTIONAL) Allow inline FontDefinition
  * @constructor
  */
-cc.FontDefinition = function (properties) {
-    var _t = this;
-    _t.fontName = "Arial";
-    _t.fontSize = 12;
-    _t.textAlign = cc.TEXT_ALIGNMENT_CENTER;
-    _t.verticalAlign = cc.VERTICAL_TEXT_ALIGNMENT_TOP;
-    _t.fillStyle = cc.color(255, 255, 255, 255);
-    _t.boundingWidth = 0;
-    _t.boundingHeight = 0;
+export class FontDefinition {
 
-    _t.strokeEnabled = false;
-    _t.strokeStyle = cc.color(255, 255, 255, 255);
-    _t.lineWidth = 1;
-    _t.lineHeight = "normal";
-    _t.fontStyle = "normal";
-    _t.fontWeight = "normal";
+    public fontName:string = "Arial";
+    public fontSize = 12;
+    public textAlign: HorizontalAlignment = HorizontalAlignment.TEXT_ALIGNMENT_CENTER;
+    public verticalAlign: VerticalAlignment = VerticalAlignment.VERTICAL_TEXT_ALIGNMENT_TOP;
+    public fillStyle:Color = color(255, 255, 255, 255);
+    public boundingWidth:number = 0;
+    public boundingHeight: number = 0;
 
-    _t.shadowEnabled = false;
-    _t.shadowOffsetX = 0;
-    _t.shadowOffsetY = 0;
-    _t.shadowBlur = 0;
-    _t.shadowOpacity = 1.0;
+    public strokeEnabled: boolean = false;
+    public strokeStyle:Color = color(255, 255, 255, 255);
+    public lineWidth: number = 1;
+    public lineHeight: string = "normal";
+    public fontStyle: string = "normal";
+    public fontWeight: string = "normal";
 
-    //properties mapping:
-    if (properties && properties instanceof Object) {
-        for (var key in properties) {
-            _t[key] = properties[key];
+    public shadowEnabled:boolean = false;
+    public shadowOffsetX: number = 0;
+    public shadowOffsetY: number = 0;
+    public shadowBlur: number = 0;
+    public shadowOpacity: number = 1.0;
+
+
+    constructor(properties: FontDefinition = null) {
+
+        //properties mapping:
+        if (properties && properties instanceof Object) {
+            for (var key in properties) {
+                (<any>this)[key] = (<any>properties)[key];
+            }
         }
     }
-};
-/**
- * Web ONLY
- * */
-cc.FontDefinition.prototype._getCanvasFontStr = function () {
-    var lineHeight = !this.lineHeight.charAt ? this.lineHeight + "px" : this.lineHeight;
-    return this.fontStyle + " " + this.fontWeight + " " + this.fontSize + "px/" + lineHeight + " '" + this.fontName + "'";
-};
 
-cc.game.addEventListener(cc.game.EVENT_RENDERER_INITED, function () {
-    if (cc._renderType === cc.game.RENDER_TYPE_WEBGL) {
-        //redefine Color
-        cc._WebGLColor = function (r, g, b, a, arrayBuffer, offset) {
-            this._arrayBuffer = arrayBuffer || new ArrayBuffer(cc._WebGLColor.BYTES_PER_ELEMENT);
-            this._offset = offset || 0;
+    _getCanvasFontStr():string {
+        var lineHeight = !this.lineHeight.charAt ? this.lineHeight + "px" : this.lineHeight;
+        return this.fontStyle + " " + this.fontWeight + " " + this.fontSize + "px/" + lineHeight + " '" + this.fontName + "'";
+    };
+}
 
-            var locArrayBuffer = this._arrayBuffer, locOffset = this._offset;
-            this._view = new Uint8Array(locArrayBuffer, locOffset, 4);
+export class _WebGLColor extends Color {
+    public static BYTES_PER_ELEMENT = 4;
 
-            this._view[0] = r || 0;
-            this._view[1] = g || 0;
-            this._view[2] = b || 0;
-            this._view[3] = (a == null) ? 255 : a;
 
-            if (a === undefined)
-                this.a_undefined = true;
-        };
-        cc._WebGLColor.BYTES_PER_ELEMENT = 4;
-        _p = cc._WebGLColor.prototype;
-        _p._getR = function () {
-            return this._view[0];
-        };
-        _p._setR = function (value) {
-            this._view[0] = value < 0 ? 0 : value;
-        };
-        _p._getG = function () {
-            return this._view[1];
-        };
-        _p._setG = function (value) {
-            this._view[1] = value < 0 ? 0 : value;
-        };
-        _p._getB = function () {
-            return this._view[2];
-        };
-        _p._setB = function (value) {
-            this._view[2] = value < 0 ? 0 : value;
-        };
-        _p._getA = function () {
-            return this._view[3];
-        };
-        _p._setA = function (value) {
-            this._view[3] = value < 0 ? 0 : value;
-        };
-        cc.defineGetterSetter(_p, "r", _p._getR, _p._setR);
-        cc.defineGetterSetter(_p, "g", _p._getG, _p._setG);
-        cc.defineGetterSetter(_p, "b", _p._getB, _p._setB);
-        cc.defineGetterSetter(_p, "a", _p._getA, _p._setA);
+    private __view: Uint8Array;
+    private _arrayBuffer: ArrayBuffer;
+    private _offset: number;
+
+
+    constructor(r: number = null, g: number = null, b: number = null, a: number = null, arrayBuffer: ArrayBuffer = null, offset:number = null ) {
+        super(r, g, b, a);
+
+        this._arrayBuffer = arrayBuffer || new ArrayBuffer(_WebGLColor.BYTES_PER_ELEMENT);
+        this._offset = offset || 0;
+
+        var locArrayBuffer = this._arrayBuffer, locOffset = this._offset;
+        this.__view = new Uint8Array(locArrayBuffer, locOffset, 4);
+
+        this.__view[0] = r || 0;
+        this.__view[1] = g || 0;
+        this.__view[2] = b || 0;
+        this.__view[3] = (a == null) ? 255 : a;
+
     }
-});
 
-_p = cc.color;
-/**
- * White color (255, 255, 255, 255)
- * @returns {cc.Color}
- * @private
- */
-_p._getWhite = function () {
-    return cc.color(255, 255, 255);
-};
+    get _view(): Uint8Array {
 
-/**
- *  Yellow color (255, 255, 0, 255)
- * @returns {cc.Color}
- * @private
- */
-_p._getYellow = function () {
-    return cc.color(255, 255, 0);
-};
+        this.__view[0] = this.r || 0;
+        this.__view[1] = this.g || 0;
+        this.__view[2] = this.b || 0;
+        this.__view[3] = (this.a == null) ? 255 : this.a;
+        return this.__view;
+    }
 
-/**
- *  Blue color (0, 0, 255, 255)
- * @type {cc.Color}
- * @private
- */
-_p._getBlue = function () {
-    return cc.color(0, 0, 255);
-};
 
-/**
- *  Green Color (0, 255, 0, 255)
- * @type {cc.Color}
- * @private
- */
-_p._getGreen = function () {
-    return cc.color(0, 255, 0);
-};
+}
 
-/**
- *  Red Color (255, 0, 0, 255)
- * @type {cc.Color}
- * @private
- */
-_p._getRed = function () {
-    return cc.color(255, 0, 0);
-};
 
-/**
- *  Magenta Color (255, 0, 255, 255)
- * @type {cc.Color}
- * @private
- */
-_p._getMagenta = function () {
-    return cc.color(255, 0, 255);
-};
-
-/**
- *  Black Color (0, 0, 0, 255)
- * @type {cc.Color}
- * @private
- */
-_p._getBlack = function () {
-    return cc.color(0, 0, 0);
-};
-
-/**
- *  Orange Color (255, 127, 0, 255)
- * @type {_p}
- * @private
- */
-_p._getOrange = function () {
-    return cc.color(255, 127, 0);
-};
-
-/**
- *  Gray Color (166, 166, 166, 255)
- * @type {_p}
- * @private
- */
-_p._getGray = function () {
-    return cc.color(166, 166, 166);
-};
-
-/** @expose */
-_p.WHITE;
-cc.defineGetterSetter(_p, "WHITE", _p._getWhite);
-/** @expose */
-_p.YELLOW;
-cc.defineGetterSetter(_p, "YELLOW", _p._getYellow);
-/** @expose */
-_p.BLUE;
-cc.defineGetterSetter(_p, "BLUE", _p._getBlue);
-/** @expose */
-_p.GREEN;
-cc.defineGetterSetter(_p, "GREEN", _p._getGreen);
-/** @expose */
-_p.RED;
-cc.defineGetterSetter(_p, "RED", _p._getRed);
-/** @expose */
-_p.MAGENTA;
-cc.defineGetterSetter(_p, "MAGENTA", _p._getMagenta);
-/** @expose */
-_p.BLACK;
-cc.defineGetterSetter(_p, "BLACK", _p._getBlack);
-/** @expose */
-_p.ORANGE;
-cc.defineGetterSetter(_p, "ORANGE", _p._getOrange);
-/** @expose */
-_p.GRAY;
-cc.defineGetterSetter(_p, "GRAY", _p._getGray);
-
-cc.BlendFunc._disable = function () {
-    return new cc.BlendFunc(cc.ONE, cc.ZERO);
-};
-cc.BlendFunc._alphaPremultiplied = function () {
-    return new cc.BlendFunc(cc.ONE, cc.ONE_MINUS_SRC_ALPHA);
-};
-cc.BlendFunc._alphaNonPremultiplied = function () {
-    return new cc.BlendFunc(cc.SRC_ALPHA, cc.ONE_MINUS_SRC_ALPHA);
-};
-cc.BlendFunc._additive = function () {
-    return new cc.BlendFunc(cc.SRC_ALPHA, cc.ONE);
-};
-
-/** @expose */
-cc.BlendFunc.DISABLE;
-cc.defineGetterSetter(cc.BlendFunc, "DISABLE", cc.BlendFunc._disable);
-/** @expose */
-cc.BlendFunc.ALPHA_PREMULTIPLIED;
-cc.defineGetterSetter(cc.BlendFunc, "ALPHA_PREMULTIPLIED", cc.BlendFunc._alphaPremultiplied);
-/** @expose */
-cc.BlendFunc.ALPHA_NON_PREMULTIPLIED;
-cc.defineGetterSetter(cc.BlendFunc, "ALPHA_NON_PREMULTIPLIED", cc.BlendFunc._alphaNonPremultiplied);
-/** @expose */
-cc.BlendFunc.ADDITIVE;
-cc.defineGetterSetter(cc.BlendFunc, "ADDITIVE", cc.BlendFunc._additive);
