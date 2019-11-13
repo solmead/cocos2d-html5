@@ -607,7 +607,7 @@ cc.EGLView = cc.Class.extend(/** @lends cc.view# */{
      * @return {cc.Point}
      */
     getVisibleOriginInPixel: function () {
-        return cc.p(this._visibleRect.x * this._scaleX, 
+        return cc.p(this._visibleRect.x * this._scaleX,
                     this._visibleRect.y * this._scaleY);
     },
 

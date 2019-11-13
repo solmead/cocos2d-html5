@@ -1,11 +1,21 @@
-﻿import { director } from "../cocos2d/core/CCDirector";
-import { log, _initDebugSetting } from "./CCDebugger";
+﻿import { log, _initDebugSetting } from "./CCDebugger";
 import { path } from "./CCPath";
-import { _Dictionary } from "../cocos2d/core/platform/CCTypes";
 import { ENGINE_VERSION } from "../cocos2d/core/platform/CCConfig";
 import { CCDrawingPrimitive } from "../cocos2d/core/CCDrawingPrimitive";
 import { isUndefined } from "./CCChecks";
 import { loader } from "./CCLoader";
+import { sys } from "./CCSys";
+import * as Tasks from "../extensions/syslibs/Tasks"
+import { director } from "../cocos2d/core/CCDirector";
+import { iEventHandler, EventHelper } from "../cocos2d/core/event-manager/CCEventHelper";
+import { EventCustom } from "../cocos2d/core/event-manager/CCEvent";
+import { eventManager } from "../cocos2d/core/event-manager/CCEventManager";
+import { Dictionary } from "../extensions/syslibs/LinqToJs";
+import { EGLView } from "../cocos2d/core/platform/CCEGLView";
+import { inputManager } from "../cocos2d/core/platform/CCInputManager";
+import { Renderer, WebGlContext } from "../cocos2d/core/renderer/Renderer";
+import { CanvasContextWrapper, rendererCanvas } from "../cocos2d/core/renderer/RendererCanvas";
+import { textureCache } from "../cocos2d/core/textures/index";
 
 /****************************************************************************
  Copyright (c) 2011-2012 cocos2d-x.org
@@ -39,7 +49,7 @@ declare global {
     }
 }
 
-export function create3DContext(canvas:HTMLCanvasElement, opt_attribs:any):RenderingContext {
+export function create3DContext(canvas:HTMLCanvasElement, opt_attribs:any = null):RenderingContext {
     var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
     var context: RenderingContext = null;
     for (var ii = 0; ii < names.length; ++ii) {
@@ -164,110 +174,53 @@ export var glExt = {
 
 
 
-var _jsAddedCache = new _Dictionary<string, boolean>();
+var _jsAddedCache = new Dictionary<string, boolean>();
 var _engineInitCalled:boolean = false;
-var _engineLoadedCallback:(()=>void) = null;
+//var _engineLoadedCallback:(()=>void) = null;
 
-export function _determineRenderType(config: configSettings) {
-    var userRenderMode = config.renderMode;
-
-    // Adjust RenderType
-    if (isNaN(userRenderMode) || userRenderMode > 2 || userRenderMode < 0)
-        config.renderMode = RENDERMETHOD.auto;
-
-    // Determine RenderType
-    game._renderType = RENDER_TYPE.CANVAS;
-    game._supportRender = false;
-
-    if (userRenderMode === RENDERMETHOD.auto) {
-        if (cc.sys.capabilities["opengl"]) {
-            game._renderType = RENDER_TYPE.WEBGL;
-            game._supportRender = true;
-        }
-        else if (cc.sys.capabilities["canvas"]) {
-            game._renderType = RENDER_TYPE.CANVAS;
-            game._supportRender = true;
-        }
-    }
-    else if (userRenderMode === RENDERMETHOD.canvas && cc.sys.capabilities["canvas"]) {
-        game._renderType = RENDER_TYPE.CANVAS;
-        game._supportRender = true;
-    }
-    else if (userRenderMode === RENDERMETHOD.opengl && cc.sys.capabilities["opengl"]) {
-        game._renderType = RENDER_TYPE.WEBGL;
-        game._supportRender = true;
-    }
-}
-export function _getJsListOfModule(moduleMap: _Dictionary<string, Array<string>>, moduleName:string, dir:string = null):Array<string> {
-    if (_jsAddedCache.valueForKey(moduleName)) return null;
+export function _getJsListOfModule(moduleMap: Dictionary<string, Array<string>>, moduleName:string, dir:string = null):Array<string> {
+    if (_jsAddedCache.get(moduleName)) return null;
     dir = dir || "";
     var jsList = new Array<string>();
-    var tempList = moduleMap.valueForKey(moduleName);
+    var tempList = moduleMap.get(moduleName);
     if (!tempList) throw new Error("can not find module [" + moduleName + "]");
     var ccPath = path;
     for (var i = 0, li = tempList.length; i < li; i++) {
         var item = tempList[i];
-        if (_jsAddedCache.valueForKey(item)) continue;
+        if (_jsAddedCache.get(item)) continue;
         var extname = ccPath.extname(item);
         if (!extname) {
             var arr = _getJsListOfModule(moduleMap, item, dir);
             if (arr) jsList = jsList.concat(arr);
         } else if (extname.toLowerCase() === ".js") jsList.push(ccPath.join(dir, item));
-        _jsAddedCache.setObject(true, item);
+        _jsAddedCache.add(item, true);
     }
     return jsList;
 }
 
 
-function _afterEngineLoaded(config:configSettings):void {
-    if (_initDebugSetting)
-        _initDebugSetting(config.debugMode);
-    game._engineLoaded = true;
-    console.log(ENGINE_VERSION);
-    if (_engineLoadedCallback) _engineLoadedCallback();
-}
-
-function _load(config: configSettings):void {
-    var engineDir = config.engineDir;
-    _afterEngineLoaded(config);
-}
-function _windowLoaded() {
-    this.removeEventListener('load', _windowLoaded, false);
-    _load(game.config);
-}
 
 
-export function initEngine(config: configSettings, cb:()=>void):void {
-    if (_engineInitCalled) {
-        var previousCallback = _engineLoadedCallback;
-        _engineLoadedCallback = function () {
-            previousCallback && previousCallback();
-            cb && cb();
-        }
-        return;
+
+
+class Game implements iEventHandler {
+    private eventHandler = new EventHelper(this);
+
+    addEventListener(type: string, listener: () => void, target?: any): void {
+        this.eventHandler.addEventListener(type, listener, target);
     }
-
-    _engineLoadedCallback = cb;
-
-    // Config uninitialized and given, initialize with it
-    if (!game.config && config) {
-        game.config = config;
+    hasEventListener(type: string, listener: () => void, target?: any): boolean {
+        return this.eventHandler.hasEventListener(type, listener, target);
     }
-    // No config given and no config set before, load it
-    else if (!game.config) {
-        game._loadConfig();
+    removeEventListener(type: string, listener: () => void, target?: any): void {
+        this.eventHandler.removeEventListener(type, listener, target);
     }
-    config = game.config;
-
-    _determineRenderType(config);
-
-    document.body ? _load(config) : _addEventListener(window, 'load', _windowLoaded, false);
-    _engineInitCalled = true;
-};
-
-
-
-class Game {
+    removeEventTarget(type: string, listener: () => void, target?: any): void {
+        this.eventHandler.removeEventTarget(type, listener, target);
+    }
+    dispatchEvent(event: string, clearAfterDispatch: boolean): void {
+        this.eventHandler.dispatchEvent(event, clearAfterDispatch);
+    }
 
     constructor() {
     }
@@ -276,66 +229,146 @@ class Game {
     private _eventShow: EventCustom = null;
 
     // states
-    _paused: boolean = true;//whether the game is paused
-    _configLoaded: boolean = false;//whether config loaded
-    _prepareCalled: boolean = false;//whether the prepare function has been called
-    _prepared: boolean = false;//whether the engine has prepared
-    _rendererInitialized: boolean = false;
+    private _paused: boolean = true;//whether the game is paused
+    private _configLoaded: boolean = false;//whether config loaded
+    private _prepareCalled: boolean = false;//whether the prepare function has been called
+    private _prepared: boolean = false;//whether the engine has prepared
+    private _rendererInitialized: boolean = false;
 
-    _renderContext: RenderingContext = null;
-    _renderer = null;
-    _renderType: RENDER_TYPE = RENDER_TYPE.CANVAS;
-    _supportRender: boolean = false;
-    _engineLoaded: boolean = false;
+    private _renderContext: RenderingContext | CanvasContextWrapper = null;
+
+    private _renderer: Renderer = null;
+    private _renderType: RENDER_TYPE = RENDER_TYPE.CANVAS;
+    private _view: EGLView = null;
+
+    private _supportRender: boolean = false;
+    private _engineLoaded: boolean = false;
 
     _intervalId:number = null;//interval target of main
 
-    _lastTime:number = null;
-    _frameTime: number = null;
+    private _lastTime:number = null;
+    private _frameTime: number = null;
+
+    private _isContextMenuEnable: boolean = false;
 
     /**
      * The outer frame of the game canvas, parent of cc.container
      * @type {Object}
      */
-    frame:HTMLElement = null;
+    private  _frame:HTMLElement = null;
     /**
      * The container of game canvas, equals to cc.container
      * @type {Object}
      */
-    container: HTMLDivElement = null;
-    _gameDiv: HTMLDivElement = null;
+    private _container: HTMLDivElement = null;
+    private _gameDiv: HTMLDivElement = null;
     /**
      * The canvas of the game, equals to cc._canvas
      * @type {Object}
      */
-    canvas: HTMLCanvasElement = null;
+    private  _canvas: HTMLCanvasElement = null;
 
     /**
      * Config of game
      * @type {Object}
      */
-    config: configSettings = null;
+    private  _config: configSettings = null;
 
 
     /**
      * drawing primitive of game engine
      * @type {cc.DrawingPrimitive}
      */
-    _drawingUtil: CCDrawingPrimitive = null;
+    private _drawingUtil: CCDrawingPrimitive = null;
 
     /**
      * Callback when the scripts of engine have been load.
      * @type {Function|null}
      */
-    onStart: (() => void) = null;
+    onStartAsync: (() => Promise<void>) = null;
 
     /**
      * Callback when game exits.
      * @type {Function|null}
      */
-    onStop: (() => void) = null;
+    onStopAsync: (() => Promise<void>) = null;
+
+    get config(): configSettings {
+        return this._config;
+    }
+    get engineLoaded(): boolean {
+        return this._engineLoaded;
+    }
+    get renderType(): RENDER_TYPE {
+        return this._renderType;
+    }
+    //set renderType(value: RENDER_TYPE) {
+    //    this._renderType = value;
+    //}
+    get supportRender(): boolean {
+        return this._supportRender;
+    }
+    //set supportRender(value: boolean) {
+    //    this._supportRender = value;
+    //}
+    //private _renderContext: RenderingContext | CanvasContextWrapper = null;
+
+    get renderContextCanvas(): CanvasContextWrapper {
+        return <CanvasContextWrapper>this._renderContext;
+    }
+    get renderContextWebGl(): WebGlContext {
+        return <WebGlContext>this._renderContext;
+    }
+    get renderContextGeneric(): RenderingContext | CanvasContextWrapper {
+        return this._renderContext;
+    }
+    get canvas(): HTMLCanvasElement {
+        return this._canvas
+    }
+    get renderer(): Renderer {
+        return this._renderer;
+    }
+    get container(): HTMLDivElement {
+        return this._container;
+    }
+    get view(): EGLView {
+        return this._view;
+    }
+    get rendererInitialized(): boolean {
+        return this._rendererInitialized;
+    }
 
 
+    private _determineRenderType() {
+        var userRenderMode = this.config.renderMode;
+
+        // Adjust RenderType
+        if (isNaN(userRenderMode) || userRenderMode > 2 || userRenderMode < 0)
+            this.config.renderMode = RENDERMETHOD.auto;
+
+        // Determine RenderType
+        this._renderType = RENDER_TYPE.CANVAS;
+        this._supportRender = false;
+
+        if (userRenderMode === RENDERMETHOD.auto) {
+            if (sys.capabilities.opengl) {
+                this._renderType = RENDER_TYPE.WEBGL;
+                this._supportRender = true;
+            }
+            else if (sys.capabilities.canvas) {
+                this._renderType = RENDER_TYPE.CANVAS;
+                this._supportRender = true;
+            }
+        }
+        else if (userRenderMode === RENDERMETHOD.canvas && sys.capabilities.canvas) {
+            this._renderType = RENDER_TYPE.CANVAS;
+            this._supportRender = true;
+        }
+        else if (userRenderMode === RENDERMETHOD.opengl && sys.capabilities.opengl) {
+            this._renderType = RENDER_TYPE.WEBGL;
+            this._supportRender = true;
+        }
+    }
 
     //@Public Methods
 
@@ -345,7 +378,7 @@ class Game {
      * @param frameRate
      */
     public setFrameRate(frameRate: number): void {
-        var config = this.config
+        var config = this._config
         config.frameRate = frameRate;
         if (this._intervalId)
             window.cancelAnimationFrame(this._intervalId);
@@ -399,12 +432,12 @@ class Game {
     /**
      * Restart game.
      */
-    public restart(): void {
+    public async restartAsync(): Promise<void> {
         director.popToSceneStackLevel(0);
         // Clean up audio
         audioEngine && audioEngine.end();
 
-        this.onStart();
+        await this.onStartAsync();
     }
     /**
      * End game, it will close the game window
@@ -413,25 +446,68 @@ class Game {
         close();
     }
 
+    async initEngineAsync(): Promise<void> {
+
+        if (_engineInitCalled) {
+            //var previousCallback = _engineLoadedCallback;
+            //_engineLoadedCallback = function () {
+            //    previousCallback && previousCallback();
+            //    cb && cb();
+            //}
+            return;
+        }
+
+        //_engineLoadedCallback = cb;
+
+        // No config given and no config set before, load it
+        else if (!this.config) {
+            await this._loadConfigAsync();
+        }
+
+        this._determineRenderType();
+
+        var p = new Promise<void>((resolve, reject) => {
+            if (document.body) {
+                resolve();
+            } else {
+                window.addEventListener('load', () => {
+                    resolve();
+                }, false);
+            }
+        });
+        await p;
+
+        var engineDir = this.config.engineDir;
+        if (_initDebugSetting)
+            _initDebugSetting(this.config.debugMode);
+        this._engineLoaded = true;
+        console.log(ENGINE_VERSION);
+
+
+        _engineInitCalled = true;
+
+        await Tasks.whenTrue(() => game.engineLoaded);
+    }
+
+
 
     //  @Game loading
     /**
      * Prepare game.
      * @param cb
      */
-    public prepare(cb: (() => void) = null): void {
+    public async prepareAsync(): Promise<void> {
 
         // Config loaded
         if (!this._configLoaded) {
-            this._loadConfig(() => {
-                this.prepare(cb);
-            });
+            await this._loadConfigAsync();
+            await this.prepareAsync();
             return;
         }
 
         // Already prepared
         if (this._prepared) {
-            if (cb) cb();
+            //if (cb) cb();
             return;
         }
         // Prepare called, but not done yet
@@ -442,7 +518,7 @@ class Game {
         if (this._engineLoaded) {
             this._prepareCalled = true;
 
-            this._initRenderer(this.config.width, this.config.height);
+            this._initRenderer(this._config.width, this._config.height);
 
             /**
              * cc.view is the shared view object.
@@ -450,7 +526,7 @@ class Game {
              * @name cc.view
              * @memberof cc
              */
-            //view = EGLView._getInstance();
+            this._view = EGLView._getInstance();
 
             /**
              * @type {cc.Director}
@@ -474,25 +550,27 @@ class Game {
             this._runMainLoop();
 
             // Load game scripts
-            var jsList = this.config.jsList;
+            var jsList = this._config.jsList;
             if (jsList) {
-                loader.loadJsWithImg(jsList, (err:string)=> {
-                    if (err) throw new Error(err);
-                    this._prepared = true;
-                    if (cb) cb();
-                });
+                await loader.loadJsWithImgAsync(null, jsList);
+                this._prepared = true;
+
+                //, (err: string) => {
+                //    if (err) throw new Error(err);
+                //    this._prepared = true;
+                //    if (cb) cb();
+                //});
             }
             else {
-                if (cb) cb();
+                //if (cb) cb();
             }
 
             return;
         }
 
         // Engine not loaded yet
-        initEngine(this.config, ()=> {
-            this.prepare(cb);
-        });
+        await this.initEngineAsync();
+        await this.prepareAsync();
     }
 
     /**
@@ -500,25 +578,33 @@ class Game {
      * @param {Object|Function} [config] Pass configuration object or onStart function
      * @param {onStart} [onStart] onStart function to be executed after game initialized
      */
-    public run(config: string | configSettings | (() => void), onStart: (() => void)):void {
+    public async runAsync(onStart: (() => Promise<void>)): Promise<void>;
+    public async runAsync(config: string, onStart: (() => Promise<void>)): Promise<void>;
+    public async runAsync(config: configSettings, onStart: (() => Promise<void>)): Promise<void>;
+    public async runAsync(config: string | configSettings | (() => Promise<void>), onStart: (() => Promise<void>) = null):Promise<void> {
         if (typeof config === 'function') {
-            this.onStart = config;
+            this.onStartAsync = config;
         }
         else {
             if (config) {
                 if (typeof config === 'string') {
-                    if (!this.config) this._loadConfig();
-                    this.config.id = config;
+                    if (!this._config) {
+                        await this._loadConfigAsync();
+                    }
+                    this._config.id = config;
                 } else {
-                    this.config = config;
+                    this._config = config;
                 }
             }
             if (typeof onStart === 'function') {
-                this.onStart = onStart;
+                this.onStartAsync = onStart;
             }
         }
 
-        this.prepare(this.onStart);
+        await this.prepareAsync();
+        if (this.onStartAsync) {
+            await this.onStartAsync();
+        }
     }
 
 
@@ -527,7 +613,7 @@ class Game {
     //  @Time ticker section
     private _setAnimFrame():void {
         this._lastTime = (new Date()).getTime();
-        var frameRate = this.config.frameRate;
+        var frameRate = this._config.frameRate;
         this._frameTime = 1000 / frameRate;
         var win = <any>window;
         if (frameRate !== 60 && frameRate !== 30) {
@@ -570,7 +656,7 @@ class Game {
     //Run game.
     private _runMainLoop() {
         var skip = true
-        var config = this.config;
+        var config = this._config;
         var frameRate = config.frameRate;
 
         director.setDisplayStats(config.showFPS);
@@ -594,13 +680,14 @@ class Game {
     }
 
 //  @Game loading section
-    public _loadConfig(cb:()=>void = null) {
+    public async _loadConfigAsync(): Promise<void> {
+        //var p = new Promise((resolve, reject) => {
+
         // Load config
-        var config = this.config || <configSettings>document["ccConfig"];
+        var config = this._config || <configSettings>(<any>document).ccConfig;
         // Already loaded or Load from document.ccConfig
         if (config) {
             this._initConfig(config);
-            cb && cb();
         }
         // Load from project.json
         else {
@@ -611,12 +698,7 @@ class Game {
                     break;
                 }
             }
-            var self = this;
-            var loaded = (err:string, txt:string):void=> {
-                var data = JSON.parse(txt);
-                self._initConfig(data);
-                cb && cb();
-            };
+
             var _src: string;
             var txt: string;
             var _resPath: string;
@@ -628,12 +710,17 @@ class Game {
                     loader.resPath = _resPath;
                     _src = path.join(_resPath, 'project.json');
                 }
-                loader.loadTxt(_src, loaded);
+                txt = await loader.loadTxtAsync(_src);
             }
             if (!txt) {
-                loader.loadTxt("project.json", loaded);
+                txt = await loader.loadTxtAsync("project.json");
             }
+            var data = JSON.parse(txt);
+            this._initConfig(data);
         }
+
+        //});
+        //return p;
     }
     private _initConfig(config: configSettings):void {
         var modules = config.modules;
@@ -658,14 +745,14 @@ class Game {
         if (config.registerSystemEvent == null) {
             config.registerSystemEvent = true;
         }
-        
+
 
         // Modules adjustment
         if (modules && modules.indexOf("core") < 0) {
             modules.splice(0, 0, "core");
         }
         modules && (config.modules = modules);
-        this.config = config;
+        this._config = config;
         this._configLoaded = true;
     }
     private _initRenderer(width:number, height:number):void {
@@ -673,23 +760,23 @@ class Game {
         if (this._rendererInitialized) return;
 
         if (!this._supportRender) {
-            throw new Error("The renderer doesn't support the renderMode " + this.config.renderMode);
+            throw new Error("The renderer doesn't support the renderMode " + this._config.renderMode);
         }
 
-        var el = this.config.id;
+        var el = this._config.id;
         var win = window;
-        var element:HTMLElement = cc.$(el) || cc.$('#' + el);
+        var element:HTMLElement = ($(el) || $('#' + el)).get(0);
         var localCanvas:HTMLCanvasElement;
         var localContainer: HTMLDivElement;
         var localConStyle;
 
         if (element.tagName === "CANVAS") {
             //it is already a canvas, we wrap it around with a div
-            this.canvas = localCanvas = <HTMLCanvasElement>element;
+            this._canvas = localCanvas = <HTMLCanvasElement>element;
             width = width || localCanvas.width;
             height = height || localCanvas.height;
 
-            this.container = localContainer = <HTMLDivElement>document.createElement("DIV");
+            this._container = localContainer = <HTMLDivElement>document.createElement("DIV");
             if (localCanvas.parentNode)
                 localCanvas.parentNode.insertBefore(localContainer, localCanvas);
         } else {
@@ -699,15 +786,15 @@ class Game {
             }
             width = width || element.clientWidth;
             height = height || element.clientHeight;
-            this.canvas = localCanvas = <HTMLCanvasElement>cc.$(document.createElement("CANVAS"));
-            this.container = localContainer = <HTMLDivElement> document.createElement("DIV");
+            this._canvas = localCanvas = <HTMLCanvasElement>document.createElement("CANVAS");
+            this._container = localContainer = <HTMLDivElement> document.createElement("DIV");
             element.appendChild(localContainer);
         }
         localContainer.setAttribute('id', 'Cocos2dGameContainer');
         localContainer.appendChild(localCanvas);
-        this.frame = <HTMLElement>((localContainer.parentNode === document.body) ? document.documentElement : localContainer.parentNode);
+        this._frame = <HTMLElement>((localContainer.parentNode === document.body) ? document.documentElement : localContainer.parentNode);
 
-        localCanvas.addClass("gameCanvas");
+        $(localCanvas).addClass("gameCanvas");
         localCanvas.setAttribute("width", <any>(width || 480));
         localCanvas.setAttribute("height", <any>(height || 320));
         localCanvas.setAttribute("tabindex", <any>(99));
@@ -721,7 +808,7 @@ class Game {
         // WebGL context created successfully
         if (this._renderContext) {
             this._renderer = rendererWebGL;
-            win.gl = this._renderContext; // global variable declared in CCMacro.js
+            //win.gl = this._renderContext; // global variable declared in CCMacro.js
             this._renderer.init();
             this._drawingUtil = new DrawingPrimitiveWebGL(this._renderContext);
             textureCache._initializingRenderer();
@@ -735,8 +822,8 @@ class Game {
         }
 
         this._gameDiv = localContainer;
-        this.canvas.oncontextmenu = function () {
-            if (!cc._isContextMenuEnable) return false;
+        this._canvas.oncontextmenu = ()=> {
+            if (!this._isContextMenuEnable) return false;
         };
 
         this.dispatchEvent(gameEvents.EVENT_RENDERER_INITED, true);
@@ -753,8 +840,8 @@ class Game {
         this._eventShow.setUserData(this);
 
         // register system events
-        if (this.config.registerSystemEvent)
-            inputManager.registerSystemEvent(this.canvas);
+        if (this._config.registerSystemEvent)
+            inputManager.registerSystemEvent(this._canvas);
 
         if (!isUndefined(document.hidden)) {
             hidden = "hidden";

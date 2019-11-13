@@ -39,7 +39,7 @@ import * as cocoa from "../cocoa/index"
 
     export var ENGINE_VERSION: string = "Cocos2d-TS v3.17";
 
-    window["CocosEngine"] = ENGINE_VERSION;
+    (<any>window)["CocosEngine"] = ENGINE_VERSION;
 
 
 

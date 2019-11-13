@@ -1,4 +1,3 @@
-import { ccClass } from "./ccClass";
 import * as macro from "./CCMacro";
 export class Color {
     constructor(r = null, g = null, b = null, a = null) {
@@ -776,72 +775,6 @@ export var VerticalAlignment;
      */
     VerticalAlignment[VerticalAlignment["VERTICAL_TEXT_ALIGNMENT_BOTTOM"] = 2] = "VERTICAL_TEXT_ALIGNMENT_BOTTOM";
 })(VerticalAlignment || (VerticalAlignment = {}));
-export class _Dictionary extends ccClass {
-    constructor() {
-        super();
-        this._keyMapTb = null;
-        this._valueMapTb = null;
-        this.__currId = 0;
-        this._keyMapTb = {};
-        this._valueMapTb = {};
-        this.__currId = 2 << (0 | (Math.random() * 10));
-    }
-    __getKey() {
-        this.__currId++;
-        return "key_" + this.__currId;
-    }
-    setObject(value, key) {
-        if (key == null)
-            return;
-        var keyId = this.__getKey();
-        this._keyMapTb[keyId] = key;
-        this._valueMapTb[keyId] = value;
-    }
-    objectForKey(key) {
-        if (key == null)
-            return null;
-        var locKeyMapTb = this._keyMapTb;
-        for (var keyId in locKeyMapTb) {
-            if (locKeyMapTb[keyId] === key)
-                return this._valueMapTb[keyId];
-        }
-        return null;
-    }
-    valueForKey(key) {
-        return this.objectForKey(key);
-    }
-    removeObjectForKey(key) {
-        if (key == null)
-            return;
-        var locKeyMapTb = this._keyMapTb;
-        for (var keyId in locKeyMapTb) {
-            if (locKeyMapTb[keyId] === key) {
-                delete this._valueMapTb[keyId];
-                delete locKeyMapTb[keyId];
-                return;
-            }
-        }
-    }
-    removeObjectsForKeys(keys) {
-        if (keys == null)
-            return;
-        for (var i = 0; i < keys.length; i++)
-            this.removeObjectForKey(keys[i]);
-    }
-    allKeys() {
-        var keyArr = [], locKeyMapTb = this._keyMapTb;
-        for (var key in locKeyMapTb)
-            keyArr.push(locKeyMapTb[key]);
-        return keyArr;
-    }
-    removeAllObjects() {
-        this._keyMapTb = {};
-        this._valueMapTb = {};
-    }
-    count() {
-        return this.allKeys().length;
-    }
-}
 /**
  * Common usage:
  *

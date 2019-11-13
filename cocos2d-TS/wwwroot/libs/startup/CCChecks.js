@@ -72,46 +72,4 @@ export function isCrossOrigin(url) {
     return urlOrigin !== location.origin;
 }
 ;
-/**
- * A string tool to construct a string with format string.
- * for example:
- *      cc.formatStr("a: %d, b: %b", a, b);
- *      cc.formatStr(a, b, c);
- * @returns {String}
- */
-export function formatStr(msg, ...args) {
-    //var args = arguments;
-    var l = args.length;
-    if (l < 1)
-        return "";
-    var str = msg;
-    var needToFormat = true;
-    if (typeof str === "object") {
-        needToFormat = false;
-    }
-    for (var i = 0; i < l; ++i) {
-        var arg = args[i];
-        if (needToFormat) {
-            while (true) {
-                var result = null;
-                if (typeof arg === "number") {
-                    result = str.match(/(%d)|(%s)/);
-                    if (result) {
-                        str = str.replace(/(%d)|(%s)/, arg);
-                        break;
-                    }
-                }
-                result = str.match(/%s/);
-                if (result)
-                    str = str.replace(/%s/, arg);
-                else
-                    str += "    " + arg;
-                break;
-            }
-        }
-        else
-            str += "    " + arg;
-    }
-    return str;
-}
 //# sourceMappingURL=CCChecks.js.map

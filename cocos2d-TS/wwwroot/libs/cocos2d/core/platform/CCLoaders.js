@@ -1,3 +1,8 @@
+import { loader } from "../../../startup/CCLoader";
+import { path } from "../../../startup/CCPath";
+import { isString } from "../../../startup/CCChecks";
+import { plistParser } from "./CCSAXParser";
+import { textureCache } from "../textures/CCTextureCache";
 /****************************************************************************
  Copyright (c) 2011-2012 cocos2d-x.org
  Copyright (c) 2013-2014 Chukong Technologies Inc.
@@ -22,142 +27,157 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-
-cc._txtLoader = {
-    load: function (realUrl, url, res, cb) {
-        cc.loader.loadTxt(realUrl, cb);
+export var _txtLoader = {
+    loadAsync: async (realUrl, url, res) => {
+        return await loader.loadTxtAsync(realUrl);
+    },
+    getBasePath: () => {
+        return null;
     }
 };
-cc.loader.register(["txt", "xml", "vsh", "fsh", "atlas"], cc._txtLoader);
-
-cc._jsonLoader = {
-    load: function (realUrl, url, res, cb) {
-        cc.loader.loadJson(realUrl, cb);
+loader.register(["txt", "xml", "vsh", "fsh", "atlas"], _txtLoader);
+export var _jsonLoader = {
+    loadAsync: async (realUrl, url, res) => {
+        return await loader.loadJsonAsync(realUrl);
+    },
+    getBasePath: () => {
+        return null;
     }
 };
-cc.loader.register(["json", "ExportJson"], cc._jsonLoader);
-
-cc._jsLoader = {
-    load: function (realUrl, url, res, cb) {
-        cc.loader.loadJs(realUrl, cb);
+loader.register(["json", "ExportJson"], _jsonLoader);
+export var _jsLoader = {
+    loadAsync: async (realUrl, url, res) => {
+        await loader.loadJsAsync(null, [realUrl]);
+        return null;
+    },
+    getBasePath: () => {
+        return null;
     }
 };
-cc.loader.register(["js"], cc._jsLoader);
-
-cc._imgLoader = {
-    load: function (realUrl, url, res, cb) {
+loader.register(["js"], _jsLoader);
+export var _imgLoader = {
+    loadAsync: async (realUrl, url, res) => {
         var callback;
-        if (cc.loader.isLoading(realUrl)) {
-            callback = function (err, img) {
-                if (err)
-                    return cb(err);
-                var tex = cc.textureCache.getTextureForKey(url) || cc.textureCache.handleLoadedTexture(url, img);
-                cb(null, tex);
-            };
+        if (loader.isLoading(realUrl)) {
+            var img = await loader.loadImgAsync(realUrl, callback);
+            var tex = textureCache.getTextureForKey(url) || textureCache.handleLoadedTexture(url, img);
+            return tex;
         }
         else {
-            callback = function (err, img) {
-                if (err)
-                    return cb(err);
-                var tex = cc.textureCache.handleLoadedTexture(url, img);
-                cb(null, tex);
-            };
+            var img = await loader.loadImgAsync(realUrl, callback);
+            var tex = textureCache.handleLoadedTexture(url, img);
+            return tex;
         }
-        cc.loader.loadImg(realUrl, callback);
-    }
-};
-cc.loader.register(["png", "jpg", "bmp", "jpeg", "gif", "ico", "tiff", "webp"], cc._imgLoader);
-cc._serverImgLoader = {
-    load: function (realUrl, url, res, cb) {
-        cc._imgLoader.load(res.src, url, res, cb);
-    }
-};
-cc.loader.register(["serverImg"], cc._serverImgLoader);
-
-cc._plistLoader = {
-    load: function (realUrl, url, res, cb) {
-        cc.loader.loadTxt(realUrl, function (err, txt) {
-            if (err)
-                return cb(err);
-            cb(null, cc.plistParser.parse(txt));
-        });
-    }
-};
-cc.loader.register(["plist"], cc._plistLoader);
-
-cc._fontLoader = {
-    TYPE: {
-        ".eot": "embedded-opentype",
-        ".ttf": "truetype",
-        ".ttc": "truetype",
-        ".woff": "woff",
-        ".svg": "svg"
     },
-    _loadFont: function (name, srcs, type) {
-        var doc = document, path = cc.path, TYPE = this.TYPE, fontStyle = document.createElement("style");
-        fontStyle.type = "text/css";
-        doc.body.appendChild(fontStyle);
-
-        var fontStr = "";
-        if (isNaN(name - 0))
-            fontStr += "@font-face { font-family:" + name + "; src:";
-        else
-            fontStr += "@font-face { font-family:'" + name + "'; src:";
-        if (srcs instanceof Array) {
-            for (var i = 0, li = srcs.length; i < li; i++) {
-                var src = srcs[i];
-                type = path.extname(src).toLowerCase();
-                fontStr += "url('" + srcs[i] + "') format('" + TYPE[type] + "')";
-                fontStr += (i === li - 1) ? ";" : ",";
+    getBasePath: () => {
+        return null;
+    }
+};
+loader.register(["png", "jpg", "bmp", "jpeg", "gif", "ico", "tiff", "webp"], _imgLoader);
+export var _serverImgLoader = {
+    loadAsync: async (realUrl, url, res) => {
+        await _imgLoader.loadAsync(res.src, url, res);
+        return null;
+    },
+    getBasePath: () => {
+        return null;
+    }
+};
+loader.register(["serverImg"], _serverImgLoader);
+export var _plistLoader = {
+    loadAsync: async (realUrl, url, res) => {
+        var txt = await loader.loadTxtAsync(realUrl);
+        return plistParser.parse(txt);
+    },
+    getBasePath: () => {
+        return null;
+    }
+};
+loader.register(["plist"], _plistLoader);
+var FontTYPEs = {
+    ".eot": "embedded-opentype",
+    ".ttf": "truetype",
+    ".ttc": "truetype",
+    ".woff": "woff",
+    ".svg": "svg"
+};
+function _loadFont(name, srcs, type) {
+    var doc = document, fontStyle = document.createElement("style");
+    fontStyle.type = "text/css";
+    doc.body.appendChild(fontStyle);
+    var fontStr = "";
+    if (isNaN(name - 0))
+        fontStr += "@font-face { font-family:" + name + "; src:";
+    else
+        fontStr += "@font-face { font-family:'" + name + "'; src:";
+    if (srcs instanceof Array) {
+        for (var i = 0, li = srcs.length; i < li; i++) {
+            var src = srcs[i];
+            type = path.extname(src).toLowerCase();
+            fontStr += "url('" + srcs[i] + "') format('" + FontTYPEs[type] + "')";
+            fontStr += (i === li - 1) ? ";" : ",";
+        }
+    }
+    else {
+        type = type.toLowerCase();
+        fontStr += "url('" + srcs + "') format('" + FontTYPEs[type] + "');";
+    }
+    fontStyle.textContent += fontStr + "}";
+    //<div style="font-family: PressStart;">.</div>
+    var preloadDiv = document.createElement("div");
+    var _divStyle = preloadDiv.style;
+    _divStyle.fontFamily = name;
+    preloadDiv.innerHTML = ".";
+    _divStyle.position = "absolute";
+    _divStyle.left = "-100px";
+    _divStyle.top = "-100px";
+    doc.body.appendChild(preloadDiv);
+}
+export var _fontLoader = {
+    loadAsync: async (realUrl, url, res) => {
+        var p = new Promise((resolve, reject) => {
+            var type = res.type, name = res.name, srcs = res.srcs;
+            if (isString(res)) {
+                type = path.extname(res);
+                name = path.basename(res, type);
+                _loadFont(name, res, type);
             }
-        } else {
-            type = type.toLowerCase();
-            fontStr += "url('" + srcs + "') format('" + TYPE[type] + "');";
-        }
-        fontStyle.textContent += fontStr + "}";
-
-        //<div style="font-family: PressStart;">.</div>
-        var preloadDiv = document.createElement("div");
-        var _divStyle = preloadDiv.style;
-        _divStyle.fontFamily = name;
-        preloadDiv.innerHTML = ".";
-        _divStyle.position = "absolute";
-        _divStyle.left = "-100px";
-        _divStyle.top = "-100px";
-        doc.body.appendChild(preloadDiv);
+            else {
+                _loadFont(name, srcs);
+            }
+            if (document.fonts) {
+                document.fonts.load("1em " + name).then(() => {
+                    resolve(true);
+                }, (err) => {
+                    reject(err);
+                });
+            }
+            else {
+                resolve(true);
+            }
+        });
+        return p;
     },
-    load: function (realUrl, url, res, cb) {
-        var self = this;
-        var type = res.type, name = res.name, srcs = res.srcs;
-        if (cc.isString(res)) {
-            type = cc.path.extname(res);
-            name = cc.path.basename(res, type);
-            self._loadFont(name, res, type);
-        } else {
-            self._loadFont(name, srcs);
-        }
-        if (document.fonts) {
-            document.fonts.load("1em " + name).then(function () {
-                cb(null, true);
-            }, function (err) {
-                cb(err);
-            });
-        } else {
-            cb(null, true);
-        }
+    getBasePath: () => {
+        return null;
     }
 };
-cc.loader.register(["font", "eot", "ttf", "woff", "svg", "ttc"], cc._fontLoader);
-
-cc._binaryLoader = {
-    load: function (realUrl, url, res, cb) {
-        cc.loader.loadBinary(realUrl, cb);
+loader.register(["font", "eot", "ttf", "woff", "svg", "ttc"], _fontLoader);
+export var _binaryLoader = {
+    loadAsync: async (realUrl, url, res) => {
+        return await loader.loadBinaryAsync(realUrl);
+    },
+    getBasePath: () => {
+        return null;
     }
 };
-
-cc._csbLoader = {
-    load: function(realUrl, url, res, cb){
-        cc.loader.loadCsb(realUrl, cb);
+export var _csbLoader = {
+    loadAsync: async (realUrl, url, res) => {
+        return await loader.loadCsbAsync(realUrl);
+    },
+    getBasePath: () => {
+        return null;
     }
 };
-cc.loader.register(["csb"], cc._csbLoader);
+loader.register(["csb"], _csbLoader);
+//# sourceMappingURL=CCLoaders.js.map

@@ -1,3 +1,5 @@
+import { ccClass } from "./CCClass";
+import { warn } from "../../../startup/CCDebugger";
 /****************************************************************************
  Copyright (c) 2008-2010 Ricardo Quesada
  Copyright (c) 2011-2012 cocos2d-x.org
@@ -23,44 +25,40 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-
 /**
  * A SAX Parser
  * @class
  * @name cc.saxParser
  * @extends cc.Class
  */
-cc.SAXParser = cc.Class.extend(/** @lends cc.saxParser# */{
-    _parser: null,
-    _isSupportDOMParser: null,
-
-    /**
-     * Constructor of cc.SAXParser
-     */
-    ctor: function () {
+export class SAXParser extends ccClass {
+    constructor() {
+        super();
+        this._parser = null;
+        this._isSupportDOMParser = null;
         if (window.DOMParser) {
             this._isSupportDOMParser = true;
             this._parser = new DOMParser();
-        } else {
+        }
+        else {
             this._isSupportDOMParser = false;
         }
-    },
-
+    }
     /**
      * @function
      * @param {String} xmlTxt
      * @return {Document}
      */
-    parse : function(xmlTxt){
+    parse(xmlTxt) {
         return this._parseXML(xmlTxt);
-    },
-
-    _parseXML: function (textxml) {
+    }
+    _parseXML(textxml) {
         // get a reference to the requested corresponding xml file
         var xmlDoc;
         if (this._isSupportDOMParser) {
             xmlDoc = this._parser.parseFromString(textxml, "text/xml");
-        } else {
+        }
+        else {
             // Internet Explorer (untested!)
             xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
             xmlDoc.async = "false";
@@ -68,31 +66,23 @@ cc.SAXParser = cc.Class.extend(/** @lends cc.saxParser# */{
         }
         return xmlDoc;
     }
-
-});
-
-/**
- *
- * cc.plistParser is a singleton object for parsing plist files
- * @class
- * @name cc.plistParser
- * @extends cc.SAXParser
- */
-cc.PlistParser = cc.SAXParser.extend(/** @lends cc.plistParser# */{
-
+}
+export class PlistParser extends SAXParser {
+    constructor() {
+        super();
+    }
     /**
      * parse a xml string as plist object.
      * @param {String} xmlTxt plist xml contents
      * @return {*} plist object
      */
-    parse : function (xmlTxt) {
+    parse(xmlTxt) {
         var xmlDoc = this._parseXML(xmlTxt);
         var plist = xmlDoc.documentElement;
         if (plist.tagName !== 'plist') {
-            cc.warn("Not a plist file!");
+            warn("Not a plist file!");
             return {};
         }
-
         // Get first real node
         var node = null;
         for (var i = 0, len = plist.childNodes.length; i < len; i++) {
@@ -102,15 +92,16 @@ cc.PlistParser = cc.SAXParser.extend(/** @lends cc.plistParser# */{
         }
         xmlDoc = null;
         return this._parseNode(node);
-    },
-
-    _parseNode: function (node) {
+    }
+    _parseNode(node) {
         var data = null, tagName = node.tagName;
-        if(tagName === "dict"){
+        if (tagName === "dict") {
             data = this._parseDict(node);
-        }else if(tagName === "array"){
+        }
+        else if (tagName === "array") {
             data = this._parseArray(node);
-        }else if(tagName === "string"){
+        }
+        else if (tagName === "string") {
             if (node.childNodes.length === 1)
                 data = node.firstChild.nodeValue;
             else {
@@ -119,19 +110,22 @@ cc.PlistParser = cc.SAXParser.extend(/** @lends cc.plistParser# */{
                 for (var i = 0; i < node.childNodes.length; i++)
                     data += node.childNodes[i].nodeValue;
             }
-        }else if(tagName === "false"){
+        }
+        else if (tagName === "false") {
             data = false;
-        }else if(tagName === "true"){
+        }
+        else if (tagName === "true") {
             data = true;
-        }else if(tagName === "real"){
+        }
+        else if (tagName === "real") {
             data = parseFloat(node.firstChild.nodeValue);
-        }else if(tagName === "integer"){
+        }
+        else if (tagName === "integer") {
             data = parseInt(node.firstChild.nodeValue, 10);
         }
         return data;
-    },
-
-    _parseArray: function (node) {
+    }
+    _parseArray(node) {
         var data = [];
         for (var i = 0, len = node.childNodes.length; i < len; i++) {
             var child = node.childNodes[i];
@@ -140,31 +134,23 @@ cc.PlistParser = cc.SAXParser.extend(/** @lends cc.plistParser# */{
             data.push(this._parseNode(child));
         }
         return data;
-    },
-
-    _parseDict: function (node) {
+    }
+    _parseDict(node) {
         var data = {};
         var key = null;
         for (var i = 0, len = node.childNodes.length; i < len; i++) {
             var child = node.childNodes[i];
             if (child.nodeType !== 1)
                 continue;
-
             // Grab the key, next noe should be the value
             if (child.tagName === 'key')
                 key = child.firstChild.nodeValue;
             else
-                data[key] = this._parseNode(child);                 // Parse the value node
+                data[key] = this._parseNode(child); // Parse the value node
         }
         return data;
     }
-});
-
-cc.saxParser = new cc.SAXParser();
-/**
- * A Plist Parser
- * @type {cc.PlistParser}
- * @name plistParser
- * @memberof cc
- */
-cc.plistParser = new cc.PlistParser();
+}
+export var saxParser = new SAXParser();
+export var plistParser = new PlistParser();
+//# sourceMappingURL=CCSAXParser.js.map

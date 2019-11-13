@@ -1,8 +1,10 @@
-﻿import { _Dictionary } from "../cocos2d/core/platform/CCTypes";
-import { game, RENDER_TYPE } from "./CCGame";
+﻿import { game, RENDER_TYPE } from "./CCGame";
 import { path } from "./CCPath";
 import * as images from "../Base64Images";
 import { error, log } from "./CCDebugger";
+import { sys } from "./CCSys";
+import { Dictionary } from "../extensions/syslibs/LinqToJs";
+import { Texture2D, UIImage } from "../cocos2d/core/textures/CCTexture2D";
 
 declare global {
     interface Window {
@@ -46,29 +48,40 @@ class ImagePool {
 export var imagePool = new ImagePool();
 
 export interface ILoader {
-    load(realUrl: string, url: string, res: any, cb: (err: any, data: any) => void): void;
+    loadAsync(realUrl: string, url: string, res: any): Promise<iResource>;
     getBasePath(): string;
 }
 
+export interface iAliasMap {
+    filenames: Array<string>;
+}
+
+export type iResource = boolean | string | iAliasMap | UIImage | Texture2D | Uint8Array;
+
 
 interface QueueItem {
-    callbacks: Array<(err?: any, data?: any) => void>;
-    img: HTMLImageElement;
+    callbacks: Array<(err?: any, data?: iResource) => void>;
+    img: iResource;
 }
 
-var _jsCache = new _Dictionary<string, boolean>(), //cache for js
-    _register = new _Dictionary<string, ILoader>(), //register of loaders
-    _langPathCache = new _Dictionary<string, string>(), //cache for lang path
-    _aliases = new _Dictionary<string, string>(), //aliases for res url
-    _queue = new _Dictionary<string, QueueItem>(), // Callback queue for resources already loading
+var _jsCache = new Dictionary<string, boolean>(), //cache for js
+    _register = new Dictionary<string, ILoader>(), //register of loaders
+    _langPathCache = new Dictionary<string, string>(), //cache for lang path
+    _aliases = new Dictionary<string, string>(), //aliases for res url
+    _queue = new Dictionary<string, QueueItem>(), // Callback queue for resources already loading
     _urlRegExp:RegExp = new RegExp("^(?:https?|ftp)://\\S*$", "i");
 
-interface Args4js {
-    baseDir: string;
-    jsList: Array<string>;
-    callback: (err: string) => void;
-}
+//interface Args4js {
+//    baseDir: string;
+//    jsList: Array<string>;
+//    callback: (err: string) => void;
+//}
 
+interface iLoadResourceItem {
+    type: string;
+    src: string;
+    name: string;
+}
 
 
 class Loader {
@@ -95,7 +108,7 @@ class Loader {
      * Cache for data loaded.
      * @type {Object}
      */
-    cache = new _Dictionary<string, string>();
+    cache = new Dictionary<string, iResource>();
     /**
          * Get XMLHttpRequest.
          * @returns {XMLHttpRequest}
@@ -112,39 +125,39 @@ class Loader {
 
     //@MODE_BEGIN DEV
 
-    private _getArgs4Js(baseDir: string): Args4js;
-    private _getArgs4Js(baseDirs: Array<string>): Args4js;
-    private _getArgs4Js(baseDirs: string, callback: ((err?: string) => void)): Args4js;
-    private _getArgs4Js(baseDirs: Array<string>, callback: ((err?: string) => void)): Args4js;
-    private _getArgs4Js(baseDir: string, jsList: Array<string>): Args4js;
-    private _getArgs4Js(baseDir: string, jsList: Array<string>, callback: ((err?: string) => void)): Args4js;
-    private _getArgs4Js(a0: Array<string> | string, a1: ((err?: string) => void) | Array<string> = null, a2: ((err?: string) => void) = null): Args4js {
-        //var a0 = args[0];
-        //var a1 = args[1];
-        //var a2 = args[2];
-        var results: Args4js = <Args4js> {
-        }
+    //private _getArgs4Js(baseDir: string): Args4js;
+    //private _getArgs4Js(baseDirs: Array<string>): Args4js;
+    //private _getArgs4Js(baseDirs: string, callback: ((err?: string) => void)): Args4js;
+    //private _getArgs4Js(baseDirs: Array<string>, callback: ((err?: string) => void)): Args4js;
+    //private _getArgs4Js(baseDir: string, jsList: Array<string>): Args4js;
+    //private _getArgs4Js(baseDir: string, jsList: Array<string>, callback: ((err?: string) => void)): Args4js;
+    //private _getArgs4Js(a0: Array<string> | string, a1: ((err?: string) => void) | Array<string> = null, a2: ((err?: string) => void) = null): Args4js {
+    //    //var a0 = args[0];
+    //    //var a1 = args[1];
+    //    //var a2 = args[2];
+    //    var results: Args4js = <Args4js> {
+    //    }
 
-        if (!a1) {
-            results.jsList = a0 instanceof Array ? a0 : [a0];
-        } else if (!a2) {
-            if (typeof a1 === "function") {
-                results.jsList = a0 instanceof Array ? a0 : [a0];
-                results.callback = a1;
-            } else {
-                results.baseDir = <string>a0 || "";
-                results.jsList = a1 instanceof Array ? a1 : [a1];
-            }
-        } else if (a2) {
-            results.baseDir = <string>a0 || "";
-            results.jsList = <Array<string>>(a1 instanceof Array ? a1 : [a1]);
-            results.callback = a2;
-        } else throw new Error("arguments error to load js!");
-        return results;
-    }
+    //    if (!a1) {
+    //        results.jsList = a0 instanceof Array ? a0 : [a0];
+    //    } else if (!a2) {
+    //        if (typeof a1 === "function") {
+    //            results.jsList = a0 instanceof Array ? a0 : [a0];
+    //            results.callback = a1;
+    //        } else {
+    //            results.baseDir = <string>a0 || "";
+    //            results.jsList = a1 instanceof Array ? a1 : [a1];
+    //        }
+    //    } else if (a2) {
+    //        results.baseDir = <string>a0 || "";
+    //        results.jsList = <Array<string>>(a1 instanceof Array ? a1 : [a1]);
+    //        results.callback = a2;
+    //    } else throw new Error("arguments error to load js!");
+    //    return results;
+    //}
 
     public isLoading(url: string): boolean {
-        return (_queue.valueForKey(url) !== undefined);
+        return (_queue.get(url) !== undefined);
     }
 
 
@@ -157,29 +170,23 @@ class Loader {
      * @param {function} [cb]  Callback function
      * @returns {*}
      */
-    public async loadJs(baseDir: string, jsList: Array<string>, cb: (err?: string) => void): Promise<void> {
-        var args4Js = this._getArgs4Js(baseDir, jsList, cb);
+    public async loadJsAsync(baseDir: string, jsList: Array<string>): Promise<void> {
+        //var args4Js = this._getArgs4Js(baseDir, jsList, cb);
 
-        var preDir = args4Js.baseDir;
-        var list = args4Js.jsList;
-        var callback = args4Js.callback;
+        var preDir = baseDir;//args4Js.baseDir;
+        var list = jsList;//args4Js.jsList;
+        //var callback = args4Js.callback;
         if (navigator.userAgent.indexOf("Trident/5") > -1) {
-            this._loadJs4Dependency(preDir, list, 0, callback);
+            await this._loadJs4DependencyAsync(preDir, list, 0);
         } else {
-            //for (var i = 0; i < list.length; i++) {
-            //    var item = list[i];
+            for (var i = 0; i < list.length; i++) {
+                var item = list[i];
 
-            //    var jsPath = path.join(preDir, item);
-            //    if (_jsCache.valueForKey(jsPath)) return cb1(null);
-            //    this._createScript(jsPath, false, cb1);
-            //}
-
-
-            cc.async.map(list, function (item, index, cb1) {
-                var jsPath = cc.path.join(preDir, item);
-                if (_jsCache[jsPath]) return cb1(null);
-                self._createScript(jsPath, false, cb1);
-            }, callback);
+                var jsPath = path.join(preDir, item);
+                if (!_jsCache.get(jsPath)) {
+                    await this._createScriptAsync(jsPath, false);
+                }
+            }
         }
     }
     /**
@@ -189,21 +196,24 @@ class Loader {
          * @param {array} jsList
          * @param {function} [cb]
          */
-    public loadJsWithImg(baseDir: string, jsList: Array<string>, cb: (err?: string) => void): void {
+    public async loadJsWithImgAsync(baseDir: string, jsList: Array<string>): Promise<void> {
         var jsLoadingImg = this._loadJsImg();
-        var args4Js = this._getArgs4Js(baseDir, jsList, cb);
-        this.loadJs(args4Js.baseDir, args4Js.jsList, (err:string)=> {
-            if (err) throw new Error(err);
-            jsLoadingImg.parentNode.removeChild(jsLoadingImg);//remove loading gif
-            if (args4Js.callback) args4Js.callback(err);
-        });
+        //var args4Js = this._getArgs4Js(baseDir, jsList, cb);
+        await this.loadJsAsync(baseDir, jsList);
+        jsLoadingImg.parentNode.removeChild(jsLoadingImg);
+        //, (err: string) => {
+        //    if (err) throw new Error(err);
+        //    jsLoadingImg.parentNode.removeChild(jsLoadingImg);//remove loading gif
+        //    if (args4Js.callback) args4Js.callback(err);
+        //});
     }
-    private async _createScript(jsPath: string, isAsync: boolean, cb: (err?: string) => void = null): Promise<void> {
-        //var p = new Promise<void>(() => {
+    private async _createScriptAsync(jsPath: string, isAsync: boolean): Promise<void> {
+        var p = new Promise<void>((resolve, reject) => {
+
             var d = document;
             var s = document.createElement('script');
             s.async = isAsync;
-            _jsCache.setObject(true, jsPath);
+            _jsCache.add(jsPath, true);
             if (game.config.noCache && typeof jsPath === "string") {
                 if (this._noCacheRex.test(jsPath))
                     s.src = jsPath + "&_t=" + ((new Date()).getTime() - 0);
@@ -212,31 +222,32 @@ class Loader {
             } else {
                 s.src = jsPath;
             }
-            s.addEventListener('load', () => {
+            var loadListener = () => {
                 s.parentNode.removeChild(s);
-                s.removeEventListener('load', arguments.callee, false);
-                cb();
-            }, false);
-            s.addEventListener('error', function () {
+                s.removeEventListener('load', loadListener, false);
+                resolve();
+            }
+            s.addEventListener('load', loadListener , false);
+            s.addEventListener('error', ()=> {
                 s.parentNode.removeChild(s);
-                cb("Load " + jsPath + " failed!");
+                reject("Load " + jsPath + " failed!");
             }, false);
             d.body.appendChild(s);
 
+        });
         //});
 
-        //return p;
+        return p;
 
     }
-    private _loadJs4Dependency(baseDir: string, jsList: Array<string>, index: number, cb: (err?: string) => void = null) {
+    private async _loadJs4DependencyAsync(baseDir: string, jsList: Array<string>, index: number): Promise<void> {
         if (index >= jsList.length) {
-            if (cb) cb();
             return;
         }
-        this._createScript(path.join(baseDir, jsList[index]), false, (err?: string) => {
-            if (err) return cb(err);
-            this._loadJs4Dependency(baseDir, jsList, index + 1, cb);
-        });
+
+        await this._createScriptAsync(path.join(baseDir, jsList[index]), false);
+
+        await this._loadJs4DependencyAsync(baseDir, jsList, index + 1);
     }
     private _loadJsImg(): HTMLImageElement {
         var d = document;
@@ -267,21 +278,79 @@ class Loader {
      * @param {string} url
      * @param {function} [cb] arguments are : err, txt
      */
-    public loadTxt(url: string, cb: (err?: any, response?:string) => void):void {
+    public async loadTxtAsync(url: string):Promise<string> {
+        var p = new Promise<string>((resolve, reject) => {
+            var xhr = this.getXMLHttpRequest(),
+                errInfo = "load " + url + " failed!";
+            xhr.open("GET", url, true);
+            if (/msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent)) {
+                // IE-specific logic here
+                xhr.setRequestHeader("Accept-Charset", "utf-8");
+                xhr.onreadystatechange = () => {
+                    if (xhr.readyState === 4)
+                        (xhr.status === 200 || xhr.status === 0) ? resolve(xhr.responseText) : reject({ status: xhr.status, errorMessage: errInfo });
+                };
+            } else {
+                if (xhr.overrideMimeType) xhr.overrideMimeType("text\/plain; charset=utf-8");
+                var loadCallback = () => {
+                    xhr.removeEventListener('load', loadCallback);
+                    xhr.removeEventListener('error', errorCallback);
+                    if ((<any>xhr)._timeoutId >= 0) {
+                        clearTimeout((<any>xhr)._timeoutId);
+                    }
+                    else {
+                        xhr.removeEventListener('timeout', timeoutCallback);
+                    }
+                    if (xhr.readyState === 4) {
+                        (xhr.status === 200 || xhr.status === 0) ? resolve(xhr.responseText) : reject({ status: xhr.status, errorMessage: errInfo });
+                    }
+                };
+                var errorCallback = () => {
+                    xhr.removeEventListener('load', loadCallback);
+                    xhr.removeEventListener('error', errorCallback);
+                    if ((<any>xhr)._timeoutId >= 0) {
+                        clearTimeout((<any>xhr)._timeoutId);
+                    }
+                    else {
+                        xhr.removeEventListener('timeout', timeoutCallback);
+                    }
+                    reject({ status: xhr.status, errorMessage: errInfo });
+                };
+                var timeoutCallback = () => {
+                    xhr.removeEventListener('load', loadCallback);
+                    xhr.removeEventListener('error', errorCallback);
+                    if ((<any>xhr)._timeoutId >= 0) {
+                        clearTimeout((<any>xhr)._timeoutId);
+                    }
+                    else {
+                        xhr.removeEventListener('timeout', timeoutCallback);
+                    }
+                    reject({ status: xhr.status, errorMessage: "Request timeout: " + errInfo });
+                };
+                xhr.addEventListener('load', loadCallback);
+                xhr.addEventListener('error', errorCallback);
+                if (xhr.ontimeout === undefined) {
+                    (<any>xhr)._timeoutId = setTimeout(() => {
+                        timeoutCallback();
+                    }, xhr.timeout);
+                }
+                else {
+                    xhr.addEventListener('timeout', timeoutCallback);
+                }
+            }
+            xhr.send(null);
+        });
+        return p;
+    }
 
-        var xhr = this.getXMLHttpRequest(),
-            errInfo = "load " + url + " failed!";
-        xhr.open("GET", url, true);
-        if (/msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent)) {
-            // IE-specific logic here
-            xhr.setRequestHeader("Accept-Charset", "utf-8");
-            xhr.onreadystatechange = ()=> {
-                if (xhr.readyState === 4)
-                    (xhr.status === 200 || xhr.status === 0) ? cb(null, xhr.responseText) : cb({ status: xhr.status, errorMessage: errInfo }, null);
-            };
-        } else {
-            if (xhr.overrideMimeType) xhr.overrideMimeType("text\/plain; charset=utf-8");
-            var loadCallback = ()=> {
+    public async loadCsbAsync(url: string): Promise<string> {
+        var p = new Promise<string>((resolve, reject) => {
+            var xhr = loader.getXMLHttpRequest(),
+                errInfo = "load " + url + " failed!";
+            xhr.open("GET", url, true);
+            xhr.responseType = "arraybuffer";
+
+            var loadCallback = () => {
                 xhr.removeEventListener('load', loadCallback);
                 xhr.removeEventListener('error', errorCallback);
                 if ((<any>xhr)._timeoutId >= 0) {
@@ -289,12 +358,16 @@ class Loader {
                 }
                 else {
                     xhr.removeEventListener('timeout', timeoutCallback);
+                }
+                var arrayBuffer = xhr.response; // Note: not oReq.responseText
+                if (arrayBuffer) {
+                    (<any>window).msg = arrayBuffer;
                 }
                 if (xhr.readyState === 4) {
-                    (xhr.status === 200 || xhr.status === 0) ? cb(null, xhr.responseText) : cb({ status: xhr.status, errorMessage: errInfo }, null);
+                    (xhr.status === 200 || xhr.status === 0) ? resolve(xhr.response) : reject({ status: xhr.status, errorMessage: errInfo });
                 }
             };
-            var errorCallback = ()=> {
+            var errorCallback = () => {
                 xhr.removeEventListener('load', loadCallback);
                 xhr.removeEventListener('error', errorCallback);
                 if ((<any>xhr)._timeoutId >= 0) {
@@ -303,9 +376,9 @@ class Loader {
                 else {
                     xhr.removeEventListener('timeout', timeoutCallback);
                 }
-                cb({ status: xhr.status, errorMessage: errInfo }, null);
+                reject({ status: xhr.status, errorMessage: errInfo });
             };
-            var timeoutCallback = ()=> {
+            var timeoutCallback = () => {
                 xhr.removeEventListener('load', loadCallback);
                 xhr.removeEventListener('error', errorCallback);
                 if ((<any>xhr)._timeoutId >= 0) {
@@ -314,79 +387,21 @@ class Loader {
                 else {
                     xhr.removeEventListener('timeout', timeoutCallback);
                 }
-                cb({ status: xhr.status, errorMessage: "Request timeout: " + errInfo }, null);
+                reject({ status: xhr.status, errorMessage: "Request timeout: " + errInfo });
             };
             xhr.addEventListener('load', loadCallback);
             xhr.addEventListener('error', errorCallback);
             if (xhr.ontimeout === undefined) {
-                (<any>xhr)._timeoutId = setTimeout(()=> {
+                (<any>xhr)._timeoutId = setTimeout(function () {
                     timeoutCallback();
                 }, xhr.timeout);
             }
             else {
                 xhr.addEventListener('timeout', timeoutCallback);
             }
-        }
-        xhr.send(null);
-
-    }
-
-    public loadCsb(url: string, cb: (err?: any, response?: string) => void): void {
-        var xhr = loader.getXMLHttpRequest(),
-            errInfo = "load " + url + " failed!";
-        xhr.open("GET", url, true);
-        xhr.responseType = "arraybuffer";
-
-        var loadCallback = () => {
-            xhr.removeEventListener('load', loadCallback);
-            xhr.removeEventListener('error', errorCallback);
-            if ((<any>xhr)._timeoutId >= 0) {
-                clearTimeout((<any>xhr)._timeoutId);
-            }
-            else {
-                xhr.removeEventListener('timeout', timeoutCallback);
-            }
-            var arrayBuffer = xhr.response; // Note: not oReq.responseText
-            if (arrayBuffer) {
-                (<any>window).msg = arrayBuffer;
-            }
-            if (xhr.readyState === 4) {
-                (xhr.status === 200 || xhr.status === 0) ? cb(null, xhr.response) : cb({ status: xhr.status, errorMessage: errInfo }, null);
-            }
-        };
-        var errorCallback = () => {
-            xhr.removeEventListener('load', loadCallback);
-            xhr.removeEventListener('error', errorCallback);
-            if ((<any>xhr)._timeoutId >= 0) {
-                clearTimeout((<any>xhr)._timeoutId);
-            }
-            else {
-                xhr.removeEventListener('timeout', timeoutCallback);
-            }
-            cb({ status: xhr.status, errorMessage: errInfo }, null);
-        };
-        var timeoutCallback = () => {
-            xhr.removeEventListener('load', loadCallback);
-            xhr.removeEventListener('error', errorCallback);
-            if ((<any>xhr)._timeoutId >= 0) {
-                clearTimeout((<any>xhr)._timeoutId);
-            }
-            else {
-                xhr.removeEventListener('timeout', timeoutCallback);
-            }
-            cb({ status: xhr.status, errorMessage: "Request timeout: " + errInfo }, null);
-        };
-        xhr.addEventListener('load', loadCallback);
-        xhr.addEventListener('error', errorCallback);
-        if (xhr.ontimeout === undefined) {
-            (<any>xhr)._timeoutId = setTimeout(function () {
-                timeoutCallback();
-            }, xhr.timeout);
-        }
-        else {
-            xhr.addEventListener('timeout', timeoutCallback);
-        }
-        xhr.send(null);
+            xhr.send(null);
+        });
+        return p;
     }
 
     /**
@@ -394,22 +409,10 @@ class Loader {
          * @param {string} url
          * @param {function} [cb] arguments are : err, json
          */
-    public loadJson(url: string, cb: (err?: any, response?: string) => void): void {
-        this.loadTxt(url, (err:any, txt:string)=> {
-            if (err) {
-                cb(err);
-            }
-            else {
-                try {
-                    var result = JSON.parse(txt);
-                }
-                catch (e) {
-                    throw new Error("parse json [" + url + "] failed : " + e);
-                    //return;
-                }
-                cb(null, result);
-            }
-        });
+    public async loadJsonAsync<dataType>(url: string): Promise<dataType> {
+        var txt = await this.loadTxtAsync(url);
+        var result: dataType = JSON.parse(txt);
+        return result;
     }
     private _checkIsImageURL(url: string): boolean {
         var ext = /(\.png)|(\.jpg)|(\.bmp)|(\.jpeg)|(\.gif)/.exec(url);
@@ -423,94 +426,109 @@ class Loader {
          * @param {function} callback
          * @returns {Image}
          */
-    public loadImg(url: string, option: any, callback: (err?: any, data?: any) => void, img: HTMLImageElement): HTMLImageElement {
-        var opt = {
-            isCrossOrigin: true
-        };
-        if (callback !== undefined)
-            opt.isCrossOrigin = option.isCrossOrigin === undefined ? opt.isCrossOrigin : option.isCrossOrigin;
-        else if (option !== undefined)
-            callback = option;
+    public async loadImgAsync(url: string, isCrossOrigin: boolean=false, img: HTMLImageElement = null): Promise<HTMLImageElement> {
 
-        var texture = this.getRes(url);
-        if (texture) {
-            callback && callback(null, texture);
-            return null;
-        }
 
-        var queue = _queue.valueForKey(url);
-        if (queue) {
-            queue.callbacks.push(callback);
-            return queue.img;
-        }
+        var p = new Promise<HTMLImageElement>((resolve, reject) => {
+            var opt = {
+                isCrossOrigin: true
+            };
 
-        img = img || imagePool.get();
-        if (opt.isCrossOrigin && location.origin !== "file://")
-            img.crossOrigin = "Anonymous";
-        else
-            img.crossOrigin = null;
+            opt.isCrossOrigin = isCrossOrigin === undefined ? opt.isCrossOrigin : isCrossOrigin;
 
-        var loadCallback = ()=> {
-            img.removeEventListener('load', loadCallback, false);
-            img.removeEventListener('error', errorCallback, false);
 
-            var queue = _queue.valueForKey(url);
-            if (queue) {
-                var callbacks = queue.callbacks;
-                for (var i = 0; i < callbacks.length; ++i) {
-                    var cb = callbacks[i];
-                    if (cb) {
-                        cb(null, img);
-                    }
+            var texture = this.getRes(url);
+            if (texture) {
+                return texture;
+            }
+
+            var callback = (err: any, img: HTMLImageElement) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(img);
                 }
-                queue.img = null;
-                _queue.removeObjectForKey(url);
-                //delete _queue[url];
+            };
+
+            var queue = _queue.get(url);
+            if (queue) {
+                queue.callbacks.push(callback);
+                return;
             }
 
-            if (window.ENABLE_IMAEG_POOL && game._renderType === RENDER_TYPE.WEBGL) {
-                imagePool.put(img);
-            }
-        };
+            img = img || imagePool.get();
+            if (opt.isCrossOrigin && location.origin !== "file://")
+                img.crossOrigin = "Anonymous";
+            else
+                img.crossOrigin = null;
 
-        var errorCallback = ()=> {
-            img.removeEventListener('load', loadCallback, false);
-            img.removeEventListener('error', errorCallback, false);
+            var loadCallback = () => {
+                img.removeEventListener('load', loadCallback, false);
+                img.removeEventListener('error', errorCallback, false);
 
-            if (window.location.protocol !== 'https:' && img.crossOrigin && img.crossOrigin.toLowerCase() === "anonymous") {
-                opt.isCrossOrigin = false;
-                this.release(url);
-                loader.loadImg(url, opt, callback, img);
-            } else {
-                var queue = _queue.valueForKey(url);
+                var queue = _queue.get(url);
                 if (queue) {
                     var callbacks = queue.callbacks;
                     for (var i = 0; i < callbacks.length; ++i) {
                         var cb = callbacks[i];
                         if (cb) {
-                            cb("load image failed");
+                            cb(img);
                         }
                     }
                     queue.img = null;
-                    _queue.removeObjectForKey(url);
+                    _queue.remove(url);
                     //delete _queue[url];
                 }
 
-                if (game._renderType === RENDER_TYPE.WEBGL) {
+                if (window.ENABLE_IMAEG_POOL && game.renderType === RENDER_TYPE.WEBGL) {
                     imagePool.put(img);
                 }
-            }
-        };
+            };
 
-        _queue.setObject({
-            img: img,
-            callbacks: callback ? [callback] : []
-        }, url);
+            var errorCallback = () => {
+                img.removeEventListener('load', loadCallback, false);
+                img.removeEventListener('error', errorCallback, false);
 
-        img.addEventListener("load", loadCallback);
-        img.addEventListener("error", errorCallback);
-        img.src = url;
-        return img;
+                if (window.location.protocol !== 'https:' && img.crossOrigin && img.crossOrigin.toLowerCase() === "anonymous") {
+                    opt.isCrossOrigin = false;
+                    this.release(url);
+                    var img2 = loader.loadImgAsync(url, opt.isCrossOrigin, img);
+                    img2.then((im) => {
+                        callback(null, im);
+                    });
+                } else {
+                    var queue = _queue.get(url);
+                    if (queue) {
+                        var callbacks = queue.callbacks;
+                        for (var i = 0; i < callbacks.length; ++i) {
+                            var cb = callbacks[i];
+                            if (cb) {
+                                cb("load image failed");
+                            }
+                        }
+                        queue.img = null;
+                        _queue.remove(url);
+                        //delete _queue[url];
+                    }
+
+                    if (game.renderType === RENDER_TYPE.WEBGL) {
+                        imagePool.put(img);
+                    }
+                }
+            };
+
+            _queue.add(url, {
+                img: img,
+                callbacks: callback ? [callback] : []
+            });
+
+            img.addEventListener("load", loadCallback);
+            img.addEventListener("error", errorCallback);
+            img.src = url;
+            return;
+        });
+
+        return p;
     }
 
 
@@ -523,10 +541,11 @@ class Loader {
      * @returns {*}
      * @private
      */
-    private _loadResIterator(item: any, index:number, cb:(err?: any, response?: string) => void) {
+
+    private async _loadResIteratorAsync(item: iLoadResourceItem | string, index: number): Promise<iResource> {
         var url: string = null;
 
-        var it = item;
+        var it = <iLoadResourceItem>item;
 
         var type = it.type;
         if (type) {
@@ -539,14 +558,14 @@ class Loader {
 
         var obj = this.getRes(url);
         if (obj)
-            return cb(null, obj);
+            return obj;
         var loader: ILoader = null;
         if (type) {
-            loader = _register.valueForKey(type.toLowerCase());
+            loader = _register.get(type.toLowerCase());
         }
         if (!loader) {
             error("loader for [" + type + "] doesn't exist!");
-            return cb();
+            return null;
         }
         var realUrl = url;
         if (!_urlRegExp.test(url)) {
@@ -560,17 +579,15 @@ class Loader {
             else
                 realUrl += "?_t=" + ((new Date()).getTime() - 0);
         }
-        loader.load(realUrl, url, item, (err:string, data:string)=> {
-            if (err) {
-                log(err);
-                this.cache.removeObjectForKey(url);
-                //delete this.cache[url];
-                cb({ status: 520, errorMessage: err }, null);
-            } else {
-                this.cache.setObject(data, url);
-                cb(null, data);
-            }
-        });
+
+
+        var data = await loader.loadAsync(realUrl, url, item);
+        if (data == null) {
+            this.cache.remove(url);
+        } else {
+            this.cache.add(url, data);
+        }
+        return data;
     }
 
 
@@ -586,7 +603,7 @@ class Loader {
             url = basePath;
             var type = path.extname(url);
             type = type ? type.toLowerCase() : "";
-            var loader = _register.valueForKey(type);
+            var loader = _register.get(type);
             if (!loader)
                 basePath = this.resPath;
             else
@@ -594,11 +611,11 @@ class Loader {
         }
         url = path.join(basePath || "", url);
         if (url.match(/[\/(\\\\)]lang[\/(\\\\)]/i)) {
-            if (_langPathCache.valueForKey(url))
-                return _langPathCache.valueForKey(url);
+            if (_langPathCache.get(url))
+                return _langPathCache.get(url);
             var extname = path.extname(url) || "";
-            var url2 = url.substring(0, url.length - extname.length) + "_" + cc.sys.language + extname;
-            _langPathCache.setObject(url2, url)
+            var url2 = url.substring(0, url.length - extname.length) + "_" + sys.language + extname;
+            _langPathCache.set(url, url2);
             url = url2;
         }
         return url;
@@ -613,54 +630,70 @@ class Loader {
      * @param {function|Object} [loadCallback]
      * @return {cc.AsyncPool}
      */
-    public async load(resources: string | Array<string>, loadCallback:(err:any, data:any)=>void = null):Promise<void> {
-        var len = arguments.length;
-        var option:any = {};
-        if (len === 0)
-            throw new Error("arguments error!");
+    public async loadAsync(resource: string): Promise<Array<iResource>>;
+    public async loadAsync(resources: Array<string>): Promise<Array<iResource>>;
+    public async loadAsync(resources: string | Array<string>): Promise<Array<iResource>> {
+        //var len = arguments.length;
+        //var option:any = {};
+        //if (len === 0)
+        //    throw new Error("arguments error!");
 
-        if (len === 3) {
-            if (typeof option === "function") {
-                if (typeof loadCallback === "function")
-                    option = { trigger: option, cb: loadCallback };
-                else
-                    option = { cb: option, cbTarget: loadCallback };
-            }
-        } else if (len === 2) {
-            if (typeof option === "function")
-                option = { cb: option };
-        } else if (len === 1) {
-            option = {};
-        }
+        //if (len === 3) {
+        //    if (typeof option === "function") {
+        //        if (typeof loadCallback === "function")
+        //            option = { trigger: option, cb: loadCallback };
+        //        else
+        //            option = { cb: option, cbTarget: loadCallback };
+        //    }
+        //} else if (len === 2) {
+        //    if (typeof option === "function")
+        //        option = { cb: option };
+        //} else if (len === 1) {
+        //    option = {};
+        //}
 
         if (!(resources instanceof Array))
             resources = [resources];
 
 
-        var asyncPool = new cc.AsyncPool(
-            resources, cc.CONCURRENCY_HTTP_REQUEST_COUNT,
-             (value, index, AsyncPoolCallback, aPool)=> {
-                this._loadResIterator(value, index, function (err) {
-                    var arr = Array.prototype.slice.call(arguments, 1);
-                    if (option.trigger)
-                        option.trigger.call(option.triggerTarget, arr[0], aPool.size, aPool.finishedSize);   //call trigger
-                    AsyncPoolCallback(err, arr[0]);
-                });
-            },
-            option.cb, option.cbTarget);
-        asyncPool.flow();
-        return asyncPool;
+        var Prs = new Array<Promise<any>>();
+        for (var i = 0; i < resources.length; i++) {
+            var value = resources[i];
+            Prs.push(this._loadResIteratorAsync(value, i));
+        }
+
+        var res = await Promise.all(Prs);
+        return res;
+
+        //this._loadResIteratorAsync(value, index);
+
+
+        //var asyncPool = new cc.AsyncPool(
+        //    resources, cc.CONCURRENCY_HTTP_REQUEST_COUNT,
+        //     (value, index, AsyncPoolCallback, aPool)=> {
+        //        this._loadResIterator(value, index, function (err) {
+        //            var arr = Array.prototype.slice.call(arguments, 1);
+        //            if (option.trigger)
+        //                option.trigger.call(option.triggerTarget, arr[0], aPool.size, aPool.finishedSize);   //call trigger
+        //            AsyncPoolCallback(err, arr[0]);
+        //        });
+        //    },
+        //    option.cb, option.cbTarget);
+        //asyncPool.flow();
+        //return asyncPool;
+
+
     }
 
-    private _handleAliases(fileNames: Array<string>, cb:()=>void) {
+    private async _handleAliasesAsync(fileNames: Array<string>):Promise<void> {
         var self = this;
         var resList = [];
         for (var key in fileNames) {
             var value = fileNames[key];
-            _aliases.setObject(value, key);
+            _aliases.set(key, value);
             resList.push(value);
         }
-        this.load(resList, cb);
+        await this.loadAsync(resList);
     }
 
 
@@ -693,14 +726,15 @@ class Loader {
      * @param {String} url  The plist file name.
      * @param {Function} [callback]
      */
-    public loadAliases(url: string, callback: () => void): void {
-        var dict = this.getRes(url);
+    public async loadAliasesAsync(url: string): Promise<void> {
+        var dict = <iAliasMap>this.getRes(url);
         if (!dict) {
-            this.load(url, (err, results)=> {
-                this._handleAliases(results[0]["filenames"], callback);
-            });
-        } else
-            this._handleAliases(dict["filenames"], callback);
+            var results = await this.loadAsync(url);
+            dict = <iAliasMap>results[0];
+            await this._handleAliasesAsync(dict.filenames);
+        } else {
+            await this._handleAliasesAsync(dict.filenames);
+        }
     }
 
 
@@ -713,11 +747,11 @@ class Loader {
         if (!extNames || !loader) return;
         var self = this;
         if (typeof extNames === "string") {
-            _register.setObject(loader, extNames.trim().toLowerCase());
+            _register.set(extNames.trim().toLowerCase(), loader);
             return loader;
         }
         for (var i = 0, li = extNames.length; i < li; i++) {
-            _register.setObject(loader, "." + extNames[i].trim().toLowerCase());
+            _register.set("." + extNames[i].trim().toLowerCase(), loader);
         }
     }
 /**
@@ -725,16 +759,16 @@ class Loader {
          * @param url
          * @returns {*}
          */
-    public getRes(url: string): string {
-        return this.cache.valueForKey(url) || this.cache.valueForKey(_aliases.valueForKey(url));
+    public getRes(url: string): iResource {
+        return this.cache.get(url) || this.cache.get(_aliases.get(url));
     }
     /**
          * Get aliase by url.
          * @param url
          * @returns {*}
          */
-    private _getAliase(url: string): string {
-        return _aliases.valueForKey(url);
+    public _getAliase(url: string): string {
+        return _aliases.get(url);
     }
     /**
          * Release the cache of resource by url.
@@ -742,15 +776,15 @@ class Loader {
          */
     public release(url: string): void {
         var cache = this.cache;
-        var queue = _queue.valueForKey(url);
+        var queue = _queue.get(url);
         if (queue) {
             queue.img = null;
-            _queue.removeObjectForKey(url);
+            _queue.remove(url);
             //delete _queue[url];
         }
-        _aliases.removeObjectForKey(url);
-        cache.removeObjectForKey(url);
-        cache.removeObjectForKey(_aliases.valueForKey(url));
+        _aliases.remove(url);
+        cache.remove(url);
+        cache.remove(_aliases.get(url));
         //delete cache[url];
         //delete cache[_aliases[url]];
         //delete _aliases[url];
@@ -761,14 +795,74 @@ class Loader {
     public releaseAll(): void {
         var locCache = this.cache;
         for (var key in locCache) {
-            locCache.removeObjectForKey(key);
+            locCache.remove(key);
         }
             //delete locCache[key];
         for (var key in _aliases) {
-            _aliases.removeObjectForKey(key);
+            _aliases.remove(key);
         }
             //delete _aliases[key];
     }
+
+
+
+
+    public async loadBinaryAsync(url:string):Promise<Uint8Array> {
+        var p = new Promise<Uint8Array>((resolve, reject) => {
+            var self = this;
+            var xhr = this.getXMLHttpRequest(),
+                errInfo = "load " + url + " failed!";
+            xhr.open("GET", url, true);
+            xhr.responseType = 'arraybuffer';
+                if (xhr.overrideMimeType) xhr.overrideMimeType("text\/plain; charset=x-user-defined");
+                xhr.onload = function () {
+                    xhr.readyState === 4 && xhr.status === 200 ? resolve(new Uint8Array(xhr.response)) : reject(errInfo);
+                };
+
+            xhr.send(null);
+        });
+        return p;
+    }
+
+
+    _str2Uint8Array(strData: string): Uint8Array {
+        if (!strData)
+            return null;
+
+        var arrData = new Uint8Array(strData.length);
+        for (var i = 0; i < strData.length; i++) {
+            arrData[i] = strData.charCodeAt(i) & 0xff;
+        }
+        return arrData;
+    }
+
+/**
+ * Load binary data by url synchronously
+ * @function
+ * @param {String} url
+ * @return {Uint8Array}
+ */
+    loadBinarySync(url: string): Uint8Array {
+        var self = this;
+        var req = this.getXMLHttpRequest();
+        req.timeout = 0;
+        var errInfo = "load " + url + " failed!";
+        req.open('GET', url, false);
+        var arrayInfo = null;
+            if (req.overrideMimeType)
+                req.overrideMimeType('text\/plain; charset=x-user-defined');
+            req.send(null);
+            if (req.status !== 200) {
+                log(errInfo);
+                return null;
+            }
+
+            arrayInfo = self._str2Uint8Array(req.responseText);
+
+        return arrayInfo;
+    }
+
+
 
 
 

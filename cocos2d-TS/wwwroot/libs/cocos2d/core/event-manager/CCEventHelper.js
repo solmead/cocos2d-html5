@@ -22,117 +22,95 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-
-// The event helper
-cc.EventHelper = function () {
-};
-
-cc.EventHelper.prototype = {
-    constructor: cc.EventHelper,
-
-    apply: function (object) {
-        object.addEventListener = cc.EventHelper.prototype.addEventListener;
-        object.hasEventListener = cc.EventHelper.prototype.hasEventListener;
-        object.removeEventListener = cc.EventHelper.prototype.removeEventListener;
-        object.dispatchEvent = cc.EventHelper.prototype.dispatchEvent;
-    },
-
-    addEventListener: function (type, listener, target) {
-        //check 'type' status, if the status is ready, dispatch event next frame
-        if (type === "load" && this._textureLoaded) {            //only load event checked.
-            setTimeout(function () {
-                listener.call(target);
-            }, 0);
-            return;
-        }
-
-        if (this._listeners === undefined)
-            this._listeners = {};
-
-        var listeners = this._listeners;
-        if (listeners[type] === undefined)
-            listeners[type] = [];
-
-        if (!this.hasEventListener(type, listener, target))
-            listeners[type].push({callback: listener, eventTarget: target});
-    },
-
-    hasEventListener: function (type, listener, target) {
-        if (this._listeners === undefined)
+export class EventHelper {
+    constructor(target = null) {
+        this.target = target;
+        this.addEventListener = (type, listener, target) => {
+            //check 'type' status, if the status is ready, dispatch event next frame
+            if (type === "load" && this._textureLoaded) { //only load event checked.
+                setTimeout(function () {
+                    listener.call(target);
+                }, 0);
+                return;
+            }
+            if (this._listeners === undefined)
+                this._listeners = {};
+            var listeners = this._listeners;
+            if (listeners[type] === undefined)
+                listeners[type] = [];
+            if (!this.hasEventListener(type, listener, target))
+                listeners[type].push({ callback: listener, eventTarget: target });
+        };
+        this.hasEventListener = (type, listener, target) => {
+            if (this._listeners === undefined)
+                return false;
+            var listeners = this._listeners;
+            if (listeners[type] !== undefined) {
+                for (var i = 0, len = listeners.length; i < len; i++) {
+                    var selListener = listeners[i];
+                    if (selListener.callback === listener && selListener.eventTarget === target)
+                        return true;
+                }
+            }
             return false;
-
-        var listeners = this._listeners;
-        if (listeners[type] !== undefined) {
-            for (var i = 0, len = listeners.length; i < len; i++) {
-                var selListener = listeners[i];
-                if (selListener.callback === listener && selListener.eventTarget === target)
-                    return true;
+        };
+        this.removeEventListener = (type, listener, target) => {
+            if (this._listeners === undefined)
+                return;
+            var listeners = this._listeners;
+            var listenerArray = listeners[type];
+            if (listenerArray !== undefined) {
+                for (var i = 0; i < listenerArray.length;) {
+                    var selListener = listenerArray[i];
+                    if (selListener.eventTarget === target && selListener.callback === listener)
+                        listenerArray.splice(i, 1);
+                    else
+                        i++;
+                }
             }
-        }
-        return false;
-    },
-
-    removeEventListener: function (type, listener, target) {
-        if (this._listeners === undefined)
-            return;
-
-        var listeners = this._listeners;
-        var listenerArray = listeners[type];
-
-        if (listenerArray !== undefined) {
-            for (var i = 0; i < listenerArray.length;) {
-                var selListener = listenerArray[i];
-                if (selListener.eventTarget === target && selListener.callback === listener)
-                    listenerArray.splice(i, 1);
-                else
-                    i++
+        };
+        this.removeEventTarget = (type, listener, target) => {
+            if (this._listeners === undefined)
+                return;
+            var listeners = this._listeners;
+            var listenerArray = listeners[type];
+            if (listenerArray !== undefined) {
+                for (var i = 0; i < listenerArray.length;) {
+                    var selListener = listenerArray[i];
+                    if (selListener.eventTarget === target)
+                        listenerArray.splice(i, 1);
+                    else
+                        i++;
+                }
             }
-        }
-    },
-
-    removeEventTarget: function (type, listener, target) {
-        if (this._listeners === undefined)
-            return;
-
-        var listeners = this._listeners;
-        var listenerArray = listeners[type];
-
-        if (listenerArray !== undefined) {
-            for (var i = 0; i < listenerArray.length;) {
-                var selListener = listenerArray[i];
-                if (selListener.eventTarget === target)
-                    listenerArray.splice(i, 1);
-                else
-                    i++
+        };
+        this.dispatchEvent = (event, clearAfterDispatch) => {
+            if (this._listeners === undefined)
+                return;
+            if (clearAfterDispatch == null)
+                clearAfterDispatch = true;
+            var listeners = this._listeners;
+            var listenerArray = listeners[event];
+            if (listenerArray !== undefined) {
+                var array = [];
+                var length = listenerArray.length;
+                for (var i = 0; i < length; i++) {
+                    array[i] = listenerArray[i];
+                }
+                for (i = 0; i < length; i++) {
+                    array[i].callback.call(array[i].eventTarget, this);
+                }
+                if (clearAfterDispatch)
+                    listenerArray.length = 0;
             }
-        }
-    },
-
-    dispatchEvent: function (event, clearAfterDispatch) {
-        if (this._listeners === undefined)
-            return;
-
-        if (clearAfterDispatch == null)
-            clearAfterDispatch = true;
-        var listeners = this._listeners;
-        var listenerArray = listeners[event];
-
-        if (listenerArray !== undefined) {
-            var array = [];
-            var length = listenerArray.length;
-
-            for (var i = 0; i < length; i++) {
-                array[i] = listenerArray[i];
-            }
-
-            for (i = 0; i < length; i++) {
-                array[i].callback.call(array[i].eventTarget, this);
-            }
-
-            if (clearAfterDispatch)
-                listenerArray.length = 0;
-        }
+        };
+        this.target = target || this;
     }
-};
-
-cc.EventHelper.prototype.apply(cc.game);
+    get _textureLoaded() {
+        return !!this.target._textureLoaded;
+    }
+    set _textureLoaded(value) {
+        this.target._textureLoaded = value;
+    }
+}
+//# sourceMappingURL=CCEventHelper.js.map

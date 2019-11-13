@@ -5,7 +5,7 @@ export function PropertyDecorator(
     propertyKey: string | symbol,
 ) {
     console.log(
-        `Decorating property ${propertyKey}` +
+        `Decorating property ${<string>propertyKey}` +
         ` from ${target.constructor.name}`,
     );
 }

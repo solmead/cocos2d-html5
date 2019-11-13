@@ -1,3 +1,5 @@
+import { ccClass } from "../platform/ccClass";
+import { game } from "../../../startup/CCGame";
 /****************************************************************************
  Copyright (c) 2011-2012 cocos2d-x.org
  Copyright (c) 2013-2014 Chukong Technologies Inc.
@@ -22,51 +24,40 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-
-/**
- * Base class of all kinds of events.
- * @class
- * @extends cc.Class
- */
-cc.Event = cc.Class.extend(/** @lends cc.Event# */{
-    _type: 0,                                   //  Event type
-    _isStopped: false,                         //< whether the event has been stopped.
-    _currentTarget: null,                       //< Current target
-
-    _setCurrentTarget: function (target) {
-        this._currentTarget = target;
-    },
-
-    ctor: function (type) {
+export class Event extends ccClass {
+    constructor(type) {
+        super();
+        this._type = 0; //  Event type
+        this._isStopped = false; //< whether the event has been stopped.
+        this._currentTarget = null; //< Current target
         this._type = type;
-    },
-
+    }
+    _setCurrentTarget(target) {
+        this._currentTarget = target;
+    }
     /**
      * Gets the event type
      * @function
      * @returns {Number}
      */
-    getType: function () {
+    getType() {
         return this._type;
-    },
-
+    }
     /**
      * Stops propagation for current event
      * @function
      */
-    stopPropagation: function () {
+    stopPropagation() {
         this._isStopped = true;
-    },
-
+    }
     /**
      * Checks whether the event has been stopped
      * @function
      * @returns {boolean}
      */
-    isStopped: function () {
+    isStopped() {
         return this._isStopped;
-    },
-
+    }
     /**
      * <p>
      *     Gets current target of the event                                                            <br/>
@@ -76,374 +67,320 @@ cc.Event = cc.Class.extend(/** @lends cc.Event# */{
      * @function
      * @returns {cc.Node}  The target with which the event associates.
      */
-    getCurrentTarget: function () {
+    getCurrentTarget() {
         return this._currentTarget;
     }
-});
-
-//event type
-/**
- * The type code of Touch event.
- * @constant
- * @type {number}
- */
-cc.Event.TOUCH = 0;
-/**
- * The type code of Keyboard event.
- * @constant
- * @type {number}
- */
-cc.Event.KEYBOARD = 1;
-/**
- * The type code of Acceleration event.
- * @constant
- * @type {number}
- */
-cc.Event.ACCELERATION = 2;
-/**
- * The type code of Mouse event.
- * @constant
- * @type {number}
- */
-cc.Event.MOUSE = 3;
-/**
- * The type code of UI focus event.
- * @constant
- * @type {number}
- */
-cc.Event.FOCUS = 4;
-/**
- * The type code of Custom event.
- * @constant
- * @type {number}
- */
-cc.Event.CUSTOM = 6;
-
-/**
- * The Custom event
- * @class
- * @extends cc.Event
- */
-cc.EventCustom = cc.Event.extend(/** @lends cc.EventCustom# */{
-    _eventName: null,
-    _userData: null,                                 // User data
-
-    ctor: function (eventName) {
-        cc.Event.prototype.ctor.call(this, cc.Event.CUSTOM);
+}
+export var EventTypes;
+(function (EventTypes) {
+    //event type
+    /**
+     * The type code of Touch event.
+     * @constant
+     * @type {number}
+     */
+    EventTypes[EventTypes["TOUCH"] = 0] = "TOUCH";
+    /**
+     * The type code of Keyboard event.
+     * @constant
+     * @type {number}
+     */
+    EventTypes[EventTypes["KEYBOARD"] = 1] = "KEYBOARD";
+    /**
+     * The type code of Acceleration event.
+     * @constant
+     * @type {number}
+     */
+    EventTypes[EventTypes["ACCELERATION"] = 2] = "ACCELERATION";
+    /**
+     * The type code of Mouse event.
+     * @constant
+     * @type {number}
+     */
+    EventTypes[EventTypes["MOUSE"] = 3] = "MOUSE";
+    /**
+     * The type code of UI focus event.
+     * @constant
+     * @type {number}
+     */
+    EventTypes[EventTypes["FOCUS"] = 4] = "FOCUS";
+    /**
+     * The type code of Custom event.
+     * @constant
+     * @type {number}
+     */
+    EventTypes[EventTypes["CUSTOM"] = 6] = "CUSTOM";
+})(EventTypes || (EventTypes = {}));
+export class EventCustom extends Event {
+    constructor(eventName) {
+        super(EventTypes.CUSTOM);
+        this._eventName = null;
+        this._userData = null;
         this._eventName = eventName;
-    },
-
+    }
     /**
      * Sets user data
      * @param {*} data
      */
-    setUserData: function (data) {
+    setUserData(data) {
         this._userData = data;
-    },
-
+    }
     /**
      * Gets user data
      * @returns {*}
      */
-    getUserData: function () {
+    getUserData() {
         return this._userData;
-    },
-
+    }
     /**
-     * Gets event name
-     * @returns {String}
-     */
-    getEventName: function () {
+         * Gets event name
+         * @returns {String}
+         */
+    getEventName() {
         return this._eventName;
     }
-});
-
-/**
- * The mouse event
- * @class
- * @extends cc.Event
- */
-cc.EventMouse = cc.Event.extend(/** @lends cc.EventMouse# */{
-    _eventType: 0,
-    _button: 0,
-    _x: 0,
-    _y: 0,
-    _prevX: 0,
-    _prevY: 0,
-    _scrollX: 0,
-    _scrollY: 0,
-
-    ctor: function (eventType) {
-        cc.Event.prototype.ctor.call(this, cc.Event.MOUSE);
+}
+export var MouseEvents;
+(function (MouseEvents) {
+    //Different types of MouseEvent
+    /**
+     * The none event code of  mouse event.
+     * @constant
+     * @type {number}
+     */
+    MouseEvents[MouseEvents["NONE"] = 0] = "NONE";
+    /**
+     * The event type code of mouse down event.
+     * @constant
+     * @type {number}
+     */
+    MouseEvents[MouseEvents["DOWN"] = 1] = "DOWN";
+    /**
+     * The event type code of mouse up event.
+     * @constant
+     * @type {number}
+     */
+    MouseEvents[MouseEvents["UP"] = 2] = "UP";
+    /**
+     * The event type code of mouse move event.
+     * @constant
+     * @type {number}
+     */
+    MouseEvents[MouseEvents["MOVE"] = 3] = "MOVE";
+    /**
+     * The event type code of mouse scroll event.
+     * @constant
+     * @type {number}
+     */
+    MouseEvents[MouseEvents["SCROLL"] = 4] = "SCROLL";
+})(MouseEvents || (MouseEvents = {}));
+export var MouseButton;
+(function (MouseButton) {
+    /**
+     * The tag of Mouse left button
+     * @constant
+     * @type {Number}
+     */
+    MouseButton[MouseButton["BUTTON_LEFT"] = 0] = "BUTTON_LEFT";
+    /**
+     * The tag of Mouse right button  (The right button number is 2 on browser)
+     * @constant
+     * @type {Number}
+     */
+    MouseButton[MouseButton["BUTTON_RIGHT"] = 2] = "BUTTON_RIGHT";
+    /**
+     * The tag of Mouse middle button  (The right button number is 1 on browser)
+     * @constant
+     * @type {Number}
+     */
+    MouseButton[MouseButton["BUTTON_MIDDLE"] = 1] = "BUTTON_MIDDLE";
+    /**
+     * The tag of Mouse button 4
+     * @constant
+     * @type {Number}
+     */
+    MouseButton[MouseButton["BUTTON_4"] = 3] = "BUTTON_4";
+    /**
+     * The tag of Mouse button 5
+     * @constant
+     * @type {Number}
+     */
+    MouseButton[MouseButton["BUTTON_5"] = 4] = "BUTTON_5";
+    /**
+     * The tag of Mouse button 6
+     * @constant
+     * @type {Number}
+     */
+    MouseButton[MouseButton["BUTTON_6"] = 5] = "BUTTON_6";
+    /**
+     * The tag of Mouse button 7
+     * @constant
+     * @type {Number}
+     */
+    MouseButton[MouseButton["BUTTON_7"] = 6] = "BUTTON_7";
+    /**
+     * The tag of Mouse button 8
+     * @constant
+     * @type {Number}
+     */
+    MouseButton[MouseButton["BUTTON_8"] = 7] = "BUTTON_8";
+})(MouseButton || (MouseButton = {}));
+export class EventMouse extends Event {
+    constructor(eventType) {
+        super(EventTypes.MOUSE);
+        this._eventType = 0;
+        this._button = 0;
+        this._x = 0;
+        this._y = 0;
+        this._prevX = 0;
+        this._prevY = 0;
+        this._scrollX = 0;
+        this._scrollY = 0;
         this._eventType = eventType;
-    },
-
+    }
     /**
      * Sets scroll data
      * @param {number} scrollX
      * @param {number} scrollY
      */
-    setScrollData: function (scrollX, scrollY) {
+    setScrollData(scrollX, scrollY) {
         this._scrollX = scrollX;
         this._scrollY = scrollY;
-    },
-
+    }
     /**
      * Returns the x axis scroll value
      * @returns {number}
      */
-    getScrollX: function () {
+    getScrollX() {
         return this._scrollX;
-    },
-
+    }
     /**
      * Returns the y axis scroll value
      * @returns {number}
      */
-    getScrollY: function () {
+    getScrollY() {
         return this._scrollY;
-    },
-
+    }
     /**
      * Sets cursor location
      * @param {number} x
      * @param {number} y
      */
-    setLocation: function (x, y) {
+    setLocation(x, y) {
         this._x = x;
         this._y = y;
-    },
-
-	/**
-	 * Returns cursor location
-	 * @return {cc.Point} location
-	 */
-    getLocation: function () {
-        return {x: this._x, y: this._y};
-    },
-
-	/**
-	 * Returns the current cursor location in screen coordinates
-	 * @return {cc.Point}
-	 */
-	getLocationInView: function() {
-		return {x: this._x, y: cc.view._designResolutionSize.height - this._y};
-	},
-
-    _setPrevCursor: function (x, y) {
+    }
+    /**
+     * Returns cursor location
+     * @return {cc.Point} location
+     */
+    getLocation() {
+        return { x: this._x, y: this._y };
+    }
+    /**
+     * Returns the current cursor location in screen coordinates
+     * @return {cc.Point}
+     */
+    getLocationInView() {
+        return { x: this._x, y: game._view._designResolutionSize.height - this._y };
+    }
+    _setPrevCursor(x, y) {
         this._prevX = x;
         this._prevY = y;
-    },
-
+    }
     /**
      * Returns the delta distance from the previous location to current location
      * @return {cc.Point}
      */
-    getDelta: function () {
-        return {x: this._x - this._prevX, y: this._y - this._prevY};
-    },
-
+    getDelta() {
+        return { x: this._x - this._prevX, y: this._y - this._prevY };
+    }
     /**
      * Returns the X axis delta distance from the previous location to current location
      * @return {Number}
      */
-    getDeltaX: function () {
+    getDeltaX() {
         return this._x - this._prevX;
-    },
-
+    }
     /**
      * Returns the Y axis delta distance from the previous location to current location
      * @return {Number}
      */
-    getDeltaY: function () {
+    getDeltaY() {
         return this._y - this._prevY;
-    },
-
+    }
     /**
      * Sets mouse button
      * @param {number} button
      */
-    setButton: function (button) {
+    setButton(button) {
         this._button = button;
-    },
-
+    }
     /**
      * Returns mouse button
      * @returns {number}
      */
-    getButton: function () {
+    getButton() {
         return this._button;
-    },
-
+    }
     /**
      * Returns location X axis data
      * @returns {number}
      */
-    getLocationX: function () {
+    getLocationX() {
         return this._x;
-    },
-
+    }
     /**
      * Returns location Y axis data
      * @returns {number}
      */
-    getLocationY: function () {
+    getLocationY() {
         return this._y;
     }
-});
-
-//Different types of MouseEvent
-/**
- * The none event code of  mouse event.
- * @constant
- * @type {number}
- */
-cc.EventMouse.NONE = 0;
-/**
- * The event type code of mouse down event.
- * @constant
- * @type {number}
- */
-cc.EventMouse.DOWN = 1;
-/**
- * The event type code of mouse up event.
- * @constant
- * @type {number}
- */
-cc.EventMouse.UP = 2;
-/**
- * The event type code of mouse move event.
- * @constant
- * @type {number}
- */
-cc.EventMouse.MOVE = 3;
-/**
- * The event type code of mouse scroll event.
- * @constant
- * @type {number}
- */
-cc.EventMouse.SCROLL = 4;
-
-/**
- * The tag of Mouse left button
- * @constant
- * @type {Number}
- */
-cc.EventMouse.BUTTON_LEFT = 0;
-
-/**
- * The tag of Mouse right button  (The right button number is 2 on browser)
- * @constant
- * @type {Number}
- */
-cc.EventMouse.BUTTON_RIGHT = 2;
-
-/**
- * The tag of Mouse middle button  (The right button number is 1 on browser)
- * @constant
- * @type {Number}
- */
-cc.EventMouse.BUTTON_MIDDLE = 1;
-
-/**
- * The tag of Mouse button 4
- * @constant
- * @type {Number}
- */
-cc.EventMouse.BUTTON_4 = 3;
-
-/**
- * The tag of Mouse button 5
- * @constant
- * @type {Number}
- */
-cc.EventMouse.BUTTON_5 = 4;
-
-/**
- * The tag of Mouse button 6
- * @constant
- * @type {Number}
- */
-cc.EventMouse.BUTTON_6 = 5;
-
-/**
- * The tag of Mouse button 7
- * @constant
- * @type {Number}
- */
-cc.EventMouse.BUTTON_7 = 6;
-
-/**
- * The tag of Mouse button 8
- * @constant
- * @type {Number}
- */
-cc.EventMouse.BUTTON_8 = 7;
-
-/**
- * The touch event
- * @class
- * @extends cc.Event
- */
-cc.EventTouch = cc.Event.extend(/** @lends cc.EventTouch# */{
-    _eventCode: 0,
-    _touches: null,
-
-    ctor: function (arr) {
-        cc.Event.prototype.ctor.call(this, cc.Event.TOUCH);
-        this._touches = arr || [];
-    },
-
+}
+export var TouchEventCodes;
+(function (TouchEventCodes) {
+    TouchEventCodes[TouchEventCodes["BEGAN"] = 0] = "BEGAN";
+    TouchEventCodes[TouchEventCodes["MOVED"] = 1] = "MOVED";
+    TouchEventCodes[TouchEventCodes["ENDED"] = 2] = "ENDED";
+    TouchEventCodes[TouchEventCodes["CANCELLED"] = 3] = "CANCELLED";
+})(TouchEventCodes || (TouchEventCodes = {}));
+export class EventTouch extends Event {
+    constructor(touches = null) {
+        super(EventTypes.TOUCH);
+        this._eventCode = 0;
+        this._touches = null;
+        this._touches = touches || new Array();
+    }
     /**
      * Returns event code
      * @returns {number}
      */
-    getEventCode: function () {
+    getEventCode() {
         return this._eventCode;
-    },
-
+    }
     /**
-     * Returns touches of event
-     * @returns {Array}
-     */
-    getTouches: function () {
+         * Returns touches of event
+         * @returns {Array}
+         */
+    getTouches() {
         return this._touches;
-    },
-
-    _setEventCode: function (eventCode) {
+    }
+    _setEventCode(eventCode) {
         this._eventCode = eventCode;
-    },
-
-    _setTouches: function (touches) {
+    }
+    _setTouches(touches) {
         this._touches = touches;
     }
-});
-
-/**
- * The maximum touch numbers
- * @constant
- * @type {Number}
- */
-cc.EventTouch.MAX_TOUCHES = 5;
-
-cc.EventTouch.EventCode = {BEGAN: 0, MOVED: 1, ENDED: 2, CANCELLED: 3};
-
-/**
- * Focus change event for UI widget
- * @class
- * @extends cc.Event
- */
-cc.EventFocus = cc.Event.extend(/** @lends cc.EventTouch# */{
-    _widgetGetFocus: null,
-    _widgetLoseFocus: null,
-    /**
-     * Constructor function.
-     * @param {ccui.Widget} widgetLoseFocus
-     * @param {ccui.Widget} widgetGetFocus
-     */
-    ctor: function(widgetLoseFocus, widgetGetFocus){
-        cc.Event.prototype.ctor.call(this, cc.Event.FOCUS);
+}
+EventTouch.MAX_TOUCHES = 5;
+export class EventFocus extends Event {
+    constructor(widgetLoseFocus, widgetGetFocus) {
+        super(EventTypes.FOCUS);
+        this._widgetGetFocus = null;
+        this._widgetLoseFocus = null;
         this._widgetGetFocus = widgetGetFocus;
         this._widgetLoseFocus = widgetLoseFocus;
     }
-});
+}
+//# sourceMappingURL=CCEvent.js.map

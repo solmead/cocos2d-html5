@@ -2,6 +2,10 @@
 import { Point, p, Rect, Size, size, rect } from "../cocoa/index";
 import { isObject, isUndefined } from "../../../startup/CCChecks";
 import { director } from "../CCDirector";
+import { gameEvents, RENDER_TYPE, game } from "../../../startup/CCGame";
+import { OPTIMIZE_BLEND_FUNC_FOR_PREMULTIPLIED_ALPHA } from "./CCConfig";
+import { sys } from "../../../startup/CCSys";
+import { ccNode } from "../base-nodes/CCNode";
 
 /****************************************************************************
  Copyright (c) 2008-2010 Ricardo Quesada
@@ -76,6 +80,11 @@ export var DEG = 180 / PI;
 export var UINT_MAX = 0xffffffff;
 
 export var g_NumberOfDraws: number = 0;
+
+export function setNumberOfDraws(v: number) {
+    g_NumberOfDraws = v;
+}
+
 
 /**
  * <p>
@@ -184,10 +193,10 @@ export var REPEAT_FOREVER = Number.MAX_VALUE - 1;
  */
 export function nodeDrawSetup(node:ccNode):void {
     //glEnable(node._glServerState);
-    if (node._shaderProgram) {
+    if (node.shaderProgram) {
         //_renderContext.useProgram(node._shaderProgram._programObj);
-        node._glProgramState.apply();
-        node._shaderProgram.setUniformForModelViewAndProjectionMatrixWithMat4();
+        node.getGLProgramState().apply();
+        node.shaderProgram.setUniformForModelViewAndProjectionMatrixWithMat4();
     }
 };
 
@@ -456,8 +465,8 @@ export var MIRRORED_REPEAT = 0x8370;
  * @type Number
  */
 export var BLEND_SRC = SRC_ALPHA;
-game.addEventListener(game.EVENT_RENDERER_INITED, function () {
-    if (_renderType === game.RENDER_TYPE_WEBGL
+game.addEventListener(gameEvents.EVENT_RENDERER_INITED, ()=> {
+    if (game.renderType === RENDER_TYPE.WEBGL
         && OPTIMIZE_BLEND_FUNC_FOR_PREMULTIPLIED_ALPHA) {
         BLEND_SRC = ONE;
     }
@@ -474,9 +483,9 @@ export var BLEND_DST = ONE_MINUS_SRC_ALPHA;
  * Check webgl error.Error will be shown in console if exists.
  * @function
  */
-checkGLErrorDebug() {
-    if (renderMode === game.RENDER_TYPE_WEBGL) {
-        var _error = _renderContext.getError();
+export function checkGLErrorDebug() {
+    if (game.renderType === RENDER_TYPE.WEBGL) {
+        var _error = (<any>game.renderContextGeneric).getError();
         if (_error) {
             log(_LogInfos.checkGLErrorDebug, _error);
         }
@@ -484,27 +493,27 @@ checkGLErrorDebug() {
 };
 
 //Possible device orientations
-export enum orientations {
+export enum ORIENTATION {
     /**
      * Device oriented vertically, home button on the bottom (UIDeviceOrientationPortrait)
      * @constant
      * @type Number
      */
-    ORIENTATION_PORTRAIT = 1,
+    PORTRAIT = 1,
 
     /**
      * Device oriented horizontally, home button on the right (UIDeviceOrientationLandscapeLeft)
      * @constant
      * @type Number
      */
-    ORIENTATION_LANDSCAPE = 2,
+    LANDSCAPE = 2,
 
     /**
      * Device oriented vertically, home button on the top (UIDeviceOrientationPortraitUpsideDown)
      * @constant
      * @type Number
      */
-    ORIENTATION_AUTO = 3
+    AUTO = 3
 }
 /**
  * The limit count for concurrency http request, useful in some mobile browsers
@@ -825,7 +834,7 @@ export function arrayVerifyType(arr:Array<any>, type:any):boolean {
  * @param {Array} arr Source Array
  * @param {*} delObj  remove object
  */
-export function arrayRemoveObject(arr:Array<any>, delObj:any):void {
+export function arrayRemoveObject<tData>(arr: Array<tData>, delObj: tData):void {
     for (var i = 0, l = arr.length; i < l; i++) {
         if (arr[i] === delObj) {
             arr.splice(i, 1);
@@ -840,7 +849,7 @@ export function arrayRemoveObject(arr:Array<any>, delObj:any):void {
  * @param {Array} arr Source Array
  * @param {Array} minusArr minus Array
  */
-export function arrayRemoveArray(arr:Array<any>, minusArr:Array<any>):void {
+export function arrayRemoveArray<tData>(arr: Array<tData>, minusArr: Array<tData>):void {
     for (var i = 0, l = minusArr.length; i < l; i++) {
         arrayRemoveObject(arr, minusArr[i]);
     }
@@ -864,7 +873,7 @@ export function arrayAppendObjectsToIndex(arr:Array<any>, addObjs:Array<any>, in
  * @param {Array} arr
  * @return {Array}
  */
-export function copyArray(arr:Array<any>):Array<any> {
+export function copyArray<tData>(arr: Array<tData>): Array<tData> {
     var i, len = arr.length, arr_clone = new Array(len);
     for (i = 0; i < len; i += 1)
         arr_clone[i] = arr[i];

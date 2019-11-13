@@ -2,6 +2,9 @@
 import { Size, size, Point, rect } from "./cocoa/index";
 import { gameEvents, game } from "../../startup/CCGame";
 import * as macro from "./platform/CCMacro";
+import {Event, EventCustom, eventManager } from "./event-manager/index";
+import { EGLView } from "./platform/CCEGLView";
+import { DirtyRegion } from "./renderer/DirtyRegion";
 
 /****************************************************************************
  Copyright (c) 2008-2010 Ricardo Quesada
@@ -49,14 +52,14 @@ abstract class Director extends ccClass {
     protected _nextScene:Scene = null;
     protected _notificationNode = null;
     protected _openGLView = null;
-    protected _scenesStack:List<Scene> = null;
+    protected _scenesStack:Array<Scene> = null;
     protected _projectionDelegate = null;
     protected _runningScene:Scene = null;
 
     protected _totalFrames: number = 0;
     protected _secondsPerFrame: number = 0;
 
-    protected _dirtyRegion = null;
+    protected _dirtyRegion:DirtyRegion = null;
 
     protected _scheduler: Scheduler = null;
     protected _actionManager: ActionManager = null;
@@ -151,7 +154,7 @@ abstract class Director extends ccClass {
      */
     public convertToGL(uiPoint: Point): Point {
         var docElem = document.documentElement;
-        var view = EGLView.getInstance();
+        var view = EGLView._getInstance();
         var bnd = docElem.getBoundingClientRect();
         var box = rect(bnd.left, bnd.top, bnd.width, bnd.height);
         box.x += window.pageXOffset - docElem.clientLeft;
@@ -171,7 +174,7 @@ abstract class Director extends ccClass {
      */
     public convertToUI(glPoint: Point): Point {
         var docElem = document.documentElement;
-        var view = EGLView.getInstance();
+        var view = EGLView._getInstance();
         var bnd = docElem.getBoundingClientRect();
         var box = rect(bnd.left, bnd.top, bnd.width, bnd.height);
         box.x += window.pageXOffset - docElem.clientLeft;
@@ -193,7 +196,7 @@ abstract class Director extends ccClass {
      *  Draw the scene. This method is called every frame. Don't call it manually.
      */
     public drawScene(): void {
-        var renderer = cc.renderer;
+        var renderer = game.renderer;
 
         // calculate "global" dt
         this.calculateDeltaTime();
@@ -233,7 +236,7 @@ abstract class Director extends ccClass {
         eventManager.dispatchEvent(this._eventAfterVisit);
         macro.setGLDraws(0);
 
-        renderer.rendering(cc._renderContext);
+        renderer.rendering(game.renderContextGeneric);
         this._totalFrames++;
 
         eventManager.dispatchEvent(this._eventAfterDraw);
@@ -354,7 +357,7 @@ export class DisplayLinkDirector extends Director {
 var sharedDirector: Director = null;
 var firstUseDirector:boolean = true;
 
-export var director = new Director();
+export var director:Director = _getInstance();
 
 export function _getInstance(): Director {
     if (firstUseDirector) {

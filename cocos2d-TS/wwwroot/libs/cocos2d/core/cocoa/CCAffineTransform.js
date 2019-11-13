@@ -16,7 +16,8 @@ export function affineTransformMake(a, b, c, d, tx, ty) {
 }
 ;
 export function pointApplyAffineTransform(point, transOrY, t = undefined) {
-    var x, y;
+    var x = 0;
+    var y = 0;
     if (t === undefined) {
         t = transOrY;
         x = point.x;

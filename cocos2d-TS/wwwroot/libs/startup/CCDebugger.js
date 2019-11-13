@@ -1,6 +1,5 @@
-import { DEBUG_MODE } from "./CCGame";
-import { _canvas } from "./CCBoot";
-import { isObject, formatStr } from "./CCChecks";
+import { DEBUG_MODE, game } from "./CCGame";
+import { isObject } from "./CCChecks";
 /****************************************************************************
  Copyright (c) 2011-2012 cocos2d-x.org
  Copyright (c) 2013-2014 Chukong Technologies Inc.
@@ -25,6 +24,48 @@ import { isObject, formatStr } from "./CCChecks";
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
+/**
+ * A string tool to construct a string with format string.
+ * for example:
+ *      cc.formatStr("a: %d, b: %b", a, b);
+ *      cc.formatStr(a, b, c);
+ * @returns {String}
+ */
+export function formatStr(msg, ...args) {
+    //var args = arguments;
+    var l = args.length;
+    if (l < 1)
+        return "";
+    var str = msg;
+    var needToFormat = true;
+    if (typeof str === "object") {
+        needToFormat = false;
+    }
+    for (var i = 0; i < l; ++i) {
+        var arg = args[i];
+        if (needToFormat) {
+            while (true) {
+                var result = null;
+                if (typeof arg === "number") {
+                    result = str.match(/(%d)|(%s)/);
+                    if (result) {
+                        str = str.replace(/(%d)|(%s)/, arg);
+                        break;
+                    }
+                }
+                result = str.match(/%s/);
+                if (result)
+                    str = str.replace(/%s/, arg);
+                else
+                    str += "    " + arg;
+                break;
+            }
+        }
+        else
+            str += "    " + arg;
+    }
+    return str;
+}
 var _log = (msg) => {
     console.log(msg);
 };
@@ -37,17 +78,21 @@ var _warn = (msg) => {
 var _assert = (cond, msg) => {
     console.log(msg);
 };
-export function log(msg) {
-    _log(msg);
+export function log(msg, ...args) {
+    var m = formatStr(msg, ...args);
+    _log(m);
 }
-export function error(msg) {
-    _error(msg);
+export function error(msg, ...args) {
+    var m = formatStr(msg, ...args);
+    _error(m);
 }
-export function warn(msg) {
-    _warn(msg);
+export function warn(msg, ...args) {
+    var m = formatStr(msg, ...args);
+    _warn(m);
 }
-export function assert(cond, msg) {
-    _assert(cond, msg);
+export function assert(cond, msg, ...args) {
+    var m = formatStr(msg, ...args);
+    _assert(cond, m);
 }
 export var _LogInfos = {
     ActionManager_addAction: "cc.ActionManager.addAction(): action must be non-null",
@@ -224,7 +269,7 @@ export var _LogInfos = {
 var _logList;
 //+++++++++++++++++++++++++something about log start++++++++++++++++++++++++++++
 export function _logToWebPage(msg) {
-    if (!_canvas)
+    if (!game.canvas)
         return;
     var logList = _logList;
     var doc = document;
@@ -232,9 +277,9 @@ export function _logToWebPage(msg) {
         var logDiv = doc.createElement("Div");
         var logDivStyle = logDiv.style;
         logDiv.setAttribute("id", "logInfoDiv");
-        _canvas.parentNode.appendChild(logDiv);
+        game.canvas.parentNode.appendChild(logDiv);
         logDiv.setAttribute("width", "200");
-        logDiv.setAttribute("height", _canvas.height);
+        logDiv.setAttribute("height", game.canvas.height);
         logDivStyle.zIndex = "99999";
         logDivStyle.position = "absolute";
         logDivStyle.top = "0";

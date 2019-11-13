@@ -1,3 +1,4 @@
+import { p } from "../cocoa/index";
 /****************************************************************************
  Copyright (c) 2011-2012 cocos2d-x.org
  Copyright (c) 2013-2014 Chukong Technologies Inc.
@@ -23,7 +24,6 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-
 /**
  * cc.visibleRect is a singleton object which defines the actual visible rect of the current view,
  * it should represent the same rect as cc.view.getViewportRect()
@@ -43,58 +43,52 @@
  * @class
  * @name cc.visibleRect
  */
-cc.visibleRect = {
-    topLeft:cc.p(0,0),
-    topRight:cc.p(0,0),
-    top:cc.p(0,0),
-    bottomLeft:cc.p(0,0),
-    bottomRight:cc.p(0,0),
-    bottom:cc.p(0,0),
-    center:cc.p(0,0),
-    left:cc.p(0,0),
-    right:cc.p(0,0),
-    width:0,
-    height:0,
-
+class VisibleRect {
+    constructor() {
+        this.topLeft = p(0, 0);
+        this.topRight = p(0, 0);
+        this.top = p(0, 0);
+        this.bottomLeft = p(0, 0);
+        this.bottomRight = p(0, 0);
+        this.bottom = p(0, 0);
+        this.center = p(0, 0);
+        this.left = p(0, 0);
+        this.right = p(0, 0);
+        this.width = 0;
+        this.height = 0;
+    }
     /**
      * initialize
      * @param {cc.Rect} visibleRect
      */
-    init:function(visibleRect){
-
+    init(visibleRect) {
         var w = this.width = visibleRect.width;
         var h = this.height = visibleRect.height;
-        var l = visibleRect.x,
-            b = visibleRect.y,
-            t = b + h,
-            r = l + w;
-
+        var l = visibleRect.x, b = visibleRect.y, t = b + h, r = l + w;
         //top
         this.topLeft.x = l;
         this.topLeft.y = t;
         this.topRight.x = r;
         this.topRight.y = t;
-        this.top.x = l + w/2;
+        this.top.x = l + w / 2;
         this.top.y = t;
-
         //bottom
         this.bottomLeft.x = l;
         this.bottomLeft.y = b;
         this.bottomRight.x = r;
         this.bottomRight.y = b;
-        this.bottom.x = l + w/2;
+        this.bottom.x = l + w / 2;
         this.bottom.y = b;
-
         //center
-        this.center.x = l + w/2;
-        this.center.y = b + h/2;
-
+        this.center.x = l + w / 2;
+        this.center.y = b + h / 2;
         //left
         this.left.x = l;
-        this.left.y = b + h/2;
-
+        this.left.y = b + h / 2;
         //right
         this.right.x = r;
-        this.right.y = b + h/2;
+        this.right.y = b + h / 2;
     }
-};
+}
+export var visibleRect = new VisibleRect();
+//# sourceMappingURL=CCVisibleRect.js.map

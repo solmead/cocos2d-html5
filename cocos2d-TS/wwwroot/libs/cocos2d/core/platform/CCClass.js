@@ -38,4 +38,4 @@ export class ccClass {
 __decorate([
     nonenumerable
 ], ccClass.prototype, "__pid", null);
-//# sourceMappingURL=ccClass.js.map
+//# sourceMappingURL=CCClass.js.map

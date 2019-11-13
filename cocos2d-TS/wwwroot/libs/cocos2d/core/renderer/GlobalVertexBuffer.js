@@ -1,3 +1,4 @@
+import { V3F_C4B_T2F_Quad } from "../platform/index";
 /****************************************************************************
  Copyright (c) 2016 Chukong Technologies Inc.
 
@@ -21,36 +22,29 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-
-var GlobalVertexBuffer = (function () {
-
 var VERTICES_SIZE = 888;
-
-var GlobalVertexBuffer = function (gl, byteLength) {
-    // WebGL buffer
-    this.gl = gl;
-    this.vertexBuffer = gl.createBuffer();
-
-    this.size = VERTICES_SIZE;
-    this.byteLength = byteLength || VERTICES_SIZE * 4 * cc.V3F_C4B_T2F_Quad.BYTES_PER_ELEMENT;
-    
-    // buffer data and views
-    this.data = new ArrayBuffer(this.byteLength);
-    this.dataArray = new Float32Array(this.data);
-
-    // Init buffer data
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, this.dataArray, gl.DYNAMIC_DRAW);
-
-    this._dirty = false;
-    this._spaces = {
-        0: this.byteLength
-    };
-};
-GlobalVertexBuffer.prototype = {
-    constructor: GlobalVertexBuffer,
-
-    allocBuffer: function (offset, size) {
+class GlobalVertexBuffer {
+    constructor(gl, byteLength) {
+        this.gl = null;
+        this.vertexBuffer = null;
+        this._spaces = null;
+        // WebGL buffer
+        this.gl = gl;
+        this.vertexBuffer = gl.createBuffer();
+        this.size = VERTICES_SIZE;
+        this.byteLength = byteLength || VERTICES_SIZE * 4 * V3F_C4B_T2F_Quad.BYTES_PER_ELEMENT;
+        // buffer data and views
+        this.data = new ArrayBuffer(this.byteLength);
+        this.dataArray = new Float32Array(this.data);
+        // Init buffer data
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.dataArray, gl.DYNAMIC_DRAW);
+        this._dirty = false;
+        this._spaces = [this.byteLength];
+        //    0: this.byteLength
+        //};
+    }
+    allocBuffer(offset, size) {
         var space = this._spaces[offset];
         if (space && space >= size) {
             // Remove the space
@@ -64,9 +58,8 @@ GlobalVertexBuffer.prototype = {
         else {
             return false;
         }
-    },
-
-    requestBuffer: function (size) {
+    }
+    requestBuffer(size) {
         var key, offset, available;
         for (key in this._spaces) {
             offset = parseInt(key);
@@ -76,9 +69,8 @@ GlobalVertexBuffer.prototype = {
             }
         }
         return -1;
-    },
-
-    freeBuffer: function (offset, size) {
+    }
+    freeBuffer(offset, size) {
         var spaces = this._spaces;
         var i, key, end;
         // Merge with previous space
@@ -93,47 +85,36 @@ GlobalVertexBuffer.prototype = {
                 break;
             }
         }
-
         end = offset + size;
         // Merge with next space 
         if (this._spaces[end]) {
             size += this._spaces[end];
             delete this._spaces[end];
         }
-
         this._spaces[offset] = size;
-    },
-
-    setDirty: function () {
+    }
+    setDirty() {
         this._dirty = true;
-    },
-
-    update: function () {
+    }
+    update() {
         if (this._dirty) {
-            this.gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
             // Note: Can memorize different dirty zones and update them separately, maybe faster
-            this.gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.dataArray);
+            this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, this.dataArray);
             this._dirty = false;
         }
-    },
-
-    updateSubData: function (offset, dataArray) {
-        this.gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-        this.gl.bufferSubData(gl.ARRAY_BUFFER, offset, dataArray);
-    },
-
-    destroy: function () {
+    }
+    updateSubData(offset, dataArray) {
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, offset, dataArray);
+    }
+    destroy() {
         this.gl.deleteBuffer(this.vertexBuffer);
-
         this.data = null;
-        this.positions = null;
-        this.colors = null;
-        this.texCoords = null;
-
+        //this.positions = null;
+        //this.colors = null;
+        //this.texCoords = null;
         this.vertexBuffer = null;
     }
-};
-
-return GlobalVertexBuffer;
-
-})();
+}
+//# sourceMappingURL=GlobalVertexBuffer.js.map

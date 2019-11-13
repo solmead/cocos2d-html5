@@ -188,7 +188,7 @@ export function colorEqual(color1:Color, color2:Color):boolean {
  * @param {Number} timestamp
  */
 export class Acceleration {
-    constructor(public x: number, public y: number, public z: number, public  timestamp: number) {
+    constructor(public x?: number, public y?: number, public z?: number, public  timestamp?: number) {
         this.x = x || 0;
         this.y = y || 0;
         this.z = z || 0;
@@ -932,86 +932,6 @@ export enum VerticalAlignment {
 
 
 
-export class _Dictionary<keyType, objType> extends ccClass {
-    private _keyMapTb:any = null;
-    private _valueMapTb:any = null;
-    private __currId = 0;
-
-    constructor() {
-        super();
-        this._keyMapTb = {};
-        this._valueMapTb = {};
-        this.__currId = 2 << (0 | (Math.random() * 10));
-    }
-
-    private __getKey():string {
-        this.__currId++;
-        return "key_" + this.__currId;
-    }
-
-    setObject(value: objType, key: keyType):void {
-        if (key == null)
-            return;
-
-        var keyId = this.__getKey();
-        this._keyMapTb[keyId] = key;
-        this._valueMapTb[keyId] = value;
-    }
-
-    objectForKey(key: keyType): objType {
-        if (key == null)
-            return null;
-
-        var locKeyMapTb = this._keyMapTb;
-        for (var keyId in locKeyMapTb) {
-            if (locKeyMapTb[keyId] === key)
-                return this._valueMapTb[keyId];
-        }
-        return null;
-    }
-
-    valueForKey(key: keyType): objType {
-        return this.objectForKey(key);
-    }
-
-    removeObjectForKey(key: keyType):void {
-        if (key == null)
-            return;
-
-        var locKeyMapTb = this._keyMapTb;
-        for (var keyId in locKeyMapTb) {
-            if (locKeyMapTb[keyId] === key) {
-                delete this._valueMapTb[keyId];
-                delete locKeyMapTb[keyId];
-                return;
-            }
-        }
-    }
-
-    removeObjectsForKeys(keys: Array<keyType>):void {
-        if (keys == null)
-            return;
-
-        for (var i = 0; i < keys.length; i++)
-            this.removeObjectForKey(keys[i]);
-    }
-
-    allKeys(): Array<keyType> {
-        var keyArr = [], locKeyMapTb = this._keyMapTb;
-        for (var key in locKeyMapTb)
-            keyArr.push(locKeyMapTb[key]);
-        return keyArr;
-    }
-
-    removeAllObjects():void {
-        this._keyMapTb = {};
-        this._valueMapTb = {};
-    }
-
-    count():number {
-        return this.allKeys().length;
-    }
-}
 
 /**
  * Common usage:

@@ -1,3 +1,7 @@
+import { CanvasRenderCmd } from './CCNodeCanvasRenderCmd';
+import { Color } from '../platform/index';
+import { log, _LogInfos } from '../../../startup/CCDebugger';
+import { rect } from '../cocoa/index';
 /****************************************************************************
  Copyright (c) 2013-2014 Chukong Technologies Inc.
 
@@ -21,71 +25,68 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-
-/**
- * cc.AtlasNode's rendering objects of Canvas
- */
-(function () {
-    cc.AtlasNode.CanvasRenderCmd = function (renderableObject) {
-        this._rootCtor(renderableObject);
-        this._needDraw = false;
-        this._colorUnmodified = cc.color.WHITE;
+//declare module 'CCAtlasNode' { // same name than in the import!
+//    export interface AtlasNode {
+//        CanvasRenderCmd: (renderable: AtlasNode) => AtlasCanvasRenderCmd;
+//    }
+//}
+///**
+// * cc.AtlasNode's rendering objects of Canvas
+// */
+//AtlasNode.prototype.CanvasRenderCmd = (renderable: AtlasNode): AtlasCanvasRenderCmd => {
+//    return new AtlasCanvasRenderCmd(renderable);
+//}
+export class AtlasNodeCanvasRenderCmd extends CanvasRenderCmd {
+    constructor(renderable) {
+        super(renderable);
+        this._colorUnmodified = null;
         this._textureToRender = null;
-    };
-
-    var proto = cc.AtlasNode.CanvasRenderCmd.prototype = Object.create(cc.Node.CanvasRenderCmd.prototype);
-    proto.constructor = cc.AtlasNode.CanvasRenderCmd;
-
-    proto.initWithTexture = function (texture, tileWidth, tileHeight, itemsToRender) {
+        this._needDraw = false;
+        this._colorUnmodified = Color.WHITE;
+        this._textureToRender = null;
+    }
+    initWithTexture(texture, tileWidth, tileHeight, itemsToRender) {
         var node = this._node;
         node._itemWidth = tileWidth;
         node._itemHeight = tileHeight;
-
         node._opacityModifyRGB = true;
         node._texture = texture;
         if (!node._texture) {
-            cc.log(cc._LogInfos.AtlasNode__initWithTexture);
+            log(_LogInfos.AtlasNode__initWithTexture);
             return false;
         }
         this._textureToRender = texture;
         this._calculateMaxItems();
-
         node.quadsToDraw = itemsToRender;
         return true;
-    };
-
-    proto.setColor = function (color3) {
+    }
+    setColor(color3) {
         var node = this._node;
         var locRealColor = node._realColor;
         if ((locRealColor.r === color3.r) && (locRealColor.g === color3.g) && (locRealColor.b === color3.b))
             return;
         this._colorUnmodified = color3;
         this._changeTextureColor();
-    };
-
-    proto._changeTextureColor = function () {
+    }
+    _changeTextureColor() {
         var node = this._node;
-        var texture = node._texture,
-            color = this._colorUnmodified,
-            element = texture.getHtmlElementObj();
-        var textureRect = cc.rect(0, 0, element.width, element.height);
+        var texture = node._texture, color = this._colorUnmodified, element = texture.getHtmlElementObj();
+        var textureRect = rect(0, 0, element.width, element.height);
         if (texture === this._textureToRender)
-            this._textureToRender = texture._generateColorTexture(color.r, color.g, color.b, textureRect);
+            this._textureToRender = (texture._generateColorTexture(color.r, color.g, color.b, textureRect));
         else
             texture._generateColorTexture(color.r, color.g, color.b, textureRect, this._textureToRender.getHtmlElementObj());
-    };
-
-    proto.setOpacity = function (opacity) {
+    }
+    setOpacity(opacity) {
         var node = this._node;
-        cc.Node.prototype.setOpacity.call(node, opacity);
-    };
-
-    proto._calculateMaxItems = function () {
+        node.setOpacity(opacity);
+    }
+    _calculateMaxItems() {
         var node = this._node;
         var selTexture = node._texture;
         var size = selTexture.getContentSize();
-
         node._itemsPerColumn = 0 | (size.height / node._itemHeight);
         node._itemsPerRow = 0 | (size.width / node._itemWidth);
-    };
-})();
+    }
+}
+//# sourceMappingURL=CCAtlasNodeCanvasRenderCmd.js.map

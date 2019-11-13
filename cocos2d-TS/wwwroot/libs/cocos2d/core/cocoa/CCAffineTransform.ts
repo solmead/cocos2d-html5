@@ -79,14 +79,15 @@ export function affineTransformMake(a:number, b:number, c:number, d:number, tx:n
 export function pointApplyAffineTransform(point: geo.Point, t: AffineTransform): geo.Point;
 export function pointApplyAffineTransform(x: number, y: number, t: AffineTransform): geo.Point;
 export function pointApplyAffineTransform(point: geo.Point | number, transOrY: AffineTransform | number, t: AffineTransform = undefined): geo.Point {
-    var x, y;
+    var x: number = 0;
+    var y: number = 0;
     if (t === undefined) {
         t = <AffineTransform>transOrY;
         x = (<geo.Point>point).x;
         y = (<geo.Point>point).y;
     } else {
-        x = point;
-        y = transOrY;
+        x = <number>point;
+        y = <number>transOrY;
     }
     return { x: t.a * x + t.c * y + t.tx, y: t.b * x + t.d * y + t.ty };
 };
