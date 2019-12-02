@@ -1,6 +1,6 @@
 ﻿import { WebGLRenderCmd } from "./CCNodeWebGLRenderCmd";
 import { AtlasNodeRenderCmd } from "./CCAtlasNodeRenderCmd";
-import { Color, SRC_ALPHA, ONE_MINUS_SRC_ALPHA, BLEND_SRC, BLEND_DST, color } from "../platform/index";
+import { Color, SRC_ALPHA, ONE_MINUS_SRC_ALPHA, BLEND_SRC, BLEND_DST, color, SHADER_POSITION } from "../platform/index";
 import { AtlasNode } from "./CCAtlasNode";
 import { game } from "../../../startup/CCGame";
 import { log, _LogInfos } from "../../../startup/CCDebugger";
@@ -8,6 +8,9 @@ import { TextureAtlas } from "../textures/CCTextureAtlas";
 import { Texture2D } from "../textures/CCTexture2D";
 import { CanvasContextWrapper } from "../renderer/RendererCanvas";
 import { WebGlContext } from "../renderer/Renderer";
+import { GLProgram } from "../../shaders/CCGLProgram";
+import { shaderCache, glBlendFunc } from "../../shaders/index";
+import * as math from "../../kazmath/index";
 
 /****************************************************************************
  Copyright (c) 2013-2014 Chukong Technologies Inc.
@@ -37,13 +40,13 @@ import { WebGlContext } from "../renderer/Renderer";
  * cc.AtlasNode's rendering objects of WebGL
  */
 
-export class AtlasNodeWebGLRenderCmd extends WebGLRenderCmd implements AtlasNodeRenderCmd {
+export class AtlasNode_WebGLRenderCmd extends WebGLRenderCmd implements AtlasNodeRenderCmd {
 
     _colorUnmodified: Color;
     _textureAtlas:TextureAtlas = null;
     _colorF32Array: Float32Array = null;
     _uniformColor:WebGLUniformLocation = null;
-    _matrix: Matrix4 = null;
+    _matrix: math.Matrix4 = null;
 
     _shaderProgram: GLProgram = null;
 
@@ -57,18 +60,18 @@ export class AtlasNodeWebGLRenderCmd extends WebGLRenderCmd implements AtlasNode
         this._colorF32Array = null;
         this._uniformColor = null;
 
-        this._matrix = new Matrix4();
+        this._matrix = new math.Matrix4();
         this._matrix.identity();
 
         //shader stuff
-        this._shaderProgram = shaderCache.programForKey(SHADER_POSITION_TEXTURE_UCOLOR);
+        this._shaderProgram = shaderCache.programForKey(SHADER_POSITION.TEXTURE_UCOLOR);
         this._uniformColor = game.renderContextWebGl.getUniformLocation(this._shaderProgram.getProgram(), "u_color");
     }
     _updateBlendFunc():void {
         var node =<AtlasNode>this._node;
         if (!this._textureAtlas.texture.hasPremultipliedAlpha()) {
-            node._blendFunc.src1 = SRC_ALPHA;
-            node._blendFunc.dst1 = ONE_MINUS_SRC_ALPHA;
+            node._blendFunc.src = SRC_ALPHA;
+            node._blendFunc.dst = ONE_MINUS_SRC_ALPHA;
         }
     }
     _updateOpacityModifyRGB(): void {
@@ -89,7 +92,7 @@ export class AtlasNodeWebGLRenderCmd extends WebGLRenderCmd implements AtlasNode
 
         this._glProgramState.apply(this._matrix);
 
-        glBlendFunc(node._blendFunc.src1, node._blendFunc.dst1);
+        glBlendFunc(node._blendFunc.src, node._blendFunc.dst);
         if (this._uniformColor && this._colorF32Array) {
             context.uniform4fv(this._uniformColor, this._colorF32Array);
             this._textureAtlas.drawNumberOfQuads(node.quadsToDraw, 0);
@@ -105,8 +108,8 @@ export class AtlasNodeWebGLRenderCmd extends WebGLRenderCmd implements AtlasNode
         this._colorUnmodified = Color.WHITE;
         node._opacityModifyRGB = true;
 
-        node._blendFunc.src1 = BLEND_SRC;
-        node._blendFunc.dst1 = BLEND_DST;
+        node._blendFunc.src = BLEND_SRC;
+        node._blendFunc.dst = BLEND_DST;
 
         var locRealColor = node._realColor;
         this._colorF32Array = new Float32Array([locRealColor.r / 255.0, locRealColor.g / 255.0, locRealColor.b / 255.0, node._realOpacity / 255.0]);

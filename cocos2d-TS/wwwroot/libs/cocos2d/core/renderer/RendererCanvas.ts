@@ -236,7 +236,7 @@ export class RendererCanvas extends Renderer {
      * @param {Number} [scaleX]
      * @param {Number} [scaleY]
      */
-    _renderingToCacheCanvas(ctx: CanvasContextWrapper, instanceID: number, scaleX: number, scaleY: number) {
+    _renderingToCacheCanvas(ctx: CanvasContextWrapper, instanceID?: number, scaleX?: number, scaleY?: number) {
         if (!ctx)
             log("The context of RenderTexture is invalid.");
         scaleX = isUndefined(scaleX) ? 1 : scaleX;

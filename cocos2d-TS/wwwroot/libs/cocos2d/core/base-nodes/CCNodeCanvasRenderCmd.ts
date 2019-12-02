@@ -103,7 +103,7 @@ export class CanvasRenderCmd extends RenderCmd {
         }
     }
 
-    _getCompositeOperationByBlendFunc(blendFunc:any = null) {
+    static _getCompositeOperationByBlendFunc(blendFunc:any = null) {
         if (!blendFunc)
             return "source-over";
         else {

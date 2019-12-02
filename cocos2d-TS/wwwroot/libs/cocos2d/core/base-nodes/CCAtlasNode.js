@@ -2,8 +2,8 @@ import { ccNode } from "./CCNode";
 import { BLEND_SRC, BLEND_DST, BlendFunc } from "../platform/index";
 import { game, RENDER_TYPE } from "../../../startup/CCGame";
 import { log, _LogInfos } from "../../../startup/CCDebugger";
-import { AtlasNodeCanvasRenderCmd } from "./CCAtlasNodeCanvasRenderCmd";
-import { AtlasNodeWebGLRenderCmd } from "./CCAtlasNodeWebGLRenderCmd";
+import { AtlasNode_CanvasRenderCmd } from "./CCAtlasNodeCanvasRenderCmd";
+import { AtlasNode_WebGLRenderCmd } from "./CCAtlasNodeWebGLRenderCmd";
 import { textureCache } from "../textures/CCTextureCache";
 /****************************************************************************
  Copyright (c) 2008-2010 Ricardo Quesada
@@ -89,10 +89,10 @@ export class AtlasNode extends ccNode {
         return this._renderCmd;
     }
     _createRenderCmd() {
-        if (game._renderType === RENDER_TYPE.CANVAS)
-            this._renderCmd = new AtlasNodeCanvasRenderCmd(this);
+        if (game.renderType === RENDER_TYPE.CANVAS)
+            this._renderCmd = new AtlasNode_CanvasRenderCmd(this);
         else
-            this._renderCmd = new AtlasNodeWebGLRenderCmd(this);
+            this._renderCmd = new AtlasNode_WebGLRenderCmd(this);
         return this._renderCmd;
     }
     /**
@@ -261,6 +261,12 @@ export class AtlasNode extends ccNode {
     }
     set texture(value) {
         this.setTexture(value);
+    }
+    get renderCmdWebGl() {
+        return this._renderCmd;
+    }
+    get renderCmdCanvas() {
+        return this._renderCmd;
     }
 }
 //# sourceMappingURL=CCAtlasNode.js.map

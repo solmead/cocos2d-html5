@@ -4,6 +4,8 @@ import { Point, p, AffineTransform, affineTransformInvertOut, affineTransformCon
 import { Color, color } from "../platform/index";
 import { game } from "../../../startup/CCGame";
 import { CanvasContextWrapper } from "../renderer/RendererCanvas";
+import { GLProgramState } from "../../shaders/CCGLProgramState";
+import { GLProgram } from "../../shaders/CCGLProgram";
 
 /****************************************************************************
  Copyright (c) 2013-2014 Chukong Technologies Inc.
@@ -29,18 +31,24 @@ import { CanvasContextWrapper } from "../renderer/RendererCanvas";
  THE SOFTWARE.
  ****************************************************************************/
 
-export class CustomRenderCmd {
+export interface IRenderCmd {
+    rendering(ctx: RenderingContext | CanvasContextWrapper, ...args: Array<any>): void;
+    needDraw(): boolean
+}
+
+
+export class CustomRenderCmd implements IRenderCmd {
     _needDraw: boolean = true;
 
-    constructor(public _target: ccNode, public _callback: (target: ccNode, ctx: CanvasRenderingContext2D | WebGLRenderingContext, scaleX: number, scaleY:number)=>void) {
+    constructor(public _target: RenderCmd, public _callback: (target: RenderCmd, ctx: RenderingContext, scaleX?: number, scaleY?:number)=>void) {
 
     }
-    rendering = (ctx: CanvasRenderingContext2D | WebGLRenderingContext, scaleX: number, scaleY: number):void => {
+    rendering(ctx: RenderingContext, scaleX?: number, scaleY?: number):void {
         if (!this._callback)
             return;
         this._callback(this._target, ctx, scaleX, scaleY);
     }
-    needDraw = ():boolean=> {
+    needDraw():boolean {
         return this._needDraw;
     }
 
@@ -106,7 +114,7 @@ function transformChildTree(root:ccNode) {
 }
 
 
-export class RenderCmd {
+export class RenderCmd implements IRenderCmd  {
     _anchorPointInPoints: Point = { x: 0, y: 0 };
     _displayedColor: Color = color(255, 255, 255, 255);
 

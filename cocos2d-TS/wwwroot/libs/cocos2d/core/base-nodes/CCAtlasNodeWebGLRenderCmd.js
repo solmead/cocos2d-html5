@@ -1,3 +1,10 @@
+import { WebGLRenderCmd } from "./CCNodeWebGLRenderCmd";
+import { Color, SRC_ALPHA, ONE_MINUS_SRC_ALPHA, BLEND_SRC, BLEND_DST, color, SHADER_POSITION } from "../platform/index";
+import { game } from "../../../startup/CCGame";
+import { log, _LogInfos } from "../../../startup/CCDebugger";
+import { TextureAtlas } from "../textures/CCTextureAtlas";
+import { shaderCache, glBlendFunc } from "../../shaders/index";
+import * as math from "../../kazmath/index";
 /****************************************************************************
  Copyright (c) 2013-2014 Chukong Technologies Inc.
 
@@ -21,45 +28,42 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-
 /**
  * cc.AtlasNode's rendering objects of WebGL
  */
-(function () {
-    cc.AtlasNode.WebGLRenderCmd = function (renderableObject) {
-        this._rootCtor(renderableObject);
-        this._needDraw = true;
+export class AtlasNode_WebGLRenderCmd extends WebGLRenderCmd {
+    constructor(renderable) {
+        super(renderable);
         this._textureAtlas = null;
-        this._colorUnmodified = cc.color.WHITE;
         this._colorF32Array = null;
         this._uniformColor = null;
-
-        this._matrix = new cc.math.Matrix4();
+        this._matrix = null;
+        this._shaderProgram = null;
+        this._needDraw = true;
+        this._textureAtlas = null;
+        this._colorUnmodified = Color.WHITE;
+        this._colorF32Array = null;
+        this._uniformColor = null;
+        this._matrix = new math.Matrix4();
         this._matrix.identity();
-
         //shader stuff
-        this._shaderProgram = cc.shaderCache.programForKey(cc.SHADER_POSITION_TEXTURE_UCOLOR);
-        this._uniformColor = cc._renderContext.getUniformLocation(this._shaderProgram.getProgram(), "u_color");
-    };
-
-    var proto = cc.AtlasNode.WebGLRenderCmd.prototype = Object.create(cc.Node.WebGLRenderCmd.prototype);
-    proto.constructor = cc.AtlasNode.WebGLRenderCmd;
-
-    proto._updateBlendFunc = function () {
+        this._shaderProgram = shaderCache.programForKey(SHADER_POSITION.TEXTURE_UCOLOR);
+        this._uniformColor = game.renderContextWebGl.getUniformLocation(this._shaderProgram.getProgram(), "u_color");
+    }
+    _updateBlendFunc() {
         var node = this._node;
         if (!this._textureAtlas.texture.hasPremultipliedAlpha()) {
-            node._blendFunc.src = cc.SRC_ALPHA;
-            node._blendFunc.dst = cc.ONE_MINUS_SRC_ALPHA;
+            node._blendFunc.src = SRC_ALPHA;
+            node._blendFunc.dst = ONE_MINUS_SRC_ALPHA;
         }
-    };
-
-    proto._updateOpacityModifyRGB = function () {
-        this._node._opacityModifyRGB = this._textureAtlas.texture.hasPremultipliedAlpha();
-    };
-
-    proto.rendering = function (ctx) {
-        var context = ctx || cc._renderContext, node = this._node;
-
+    }
+    _updateOpacityModifyRGB() {
+        var node = this._node;
+        node._opacityModifyRGB = this._textureAtlas.texture.hasPremultipliedAlpha();
+    }
+    rendering(ctx) {
+        var context = (ctx || game.renderContextWebGl);
+        var node = this._node;
         var wt = this._worldTransform;
         this._matrix.mat[0] = wt.a;
         this._matrix.mat[4] = wt.c;
@@ -67,46 +71,38 @@
         this._matrix.mat[1] = wt.b;
         this._matrix.mat[5] = wt.d;
         this._matrix.mat[13] = wt.ty;
-
         this._glProgramState.apply(this._matrix);
-
-        cc.glBlendFunc(node._blendFunc.src, node._blendFunc.dst);
+        glBlendFunc(node._blendFunc.src, node._blendFunc.dst);
         if (this._uniformColor && this._colorF32Array) {
             context.uniform4fv(this._uniformColor, this._colorF32Array);
             this._textureAtlas.drawNumberOfQuads(node.quadsToDraw, 0);
         }
-    };
-
-    proto.initWithTexture = function (texture, tileWidth, tileHeight, itemsToRender) {
+    }
+    initWithTexture(texture, tileWidth, tileHeight, itemsToRender) {
         var node = this._node;
         node._itemWidth = tileWidth;
         node._itemHeight = tileHeight;
-        this._colorUnmodified = cc.color.WHITE;
+        this._colorUnmodified = Color.WHITE;
         node._opacityModifyRGB = true;
-
-        node._blendFunc.src = cc.BLEND_SRC;
-        node._blendFunc.dst = cc.BLEND_DST;
-
+        node._blendFunc.src = BLEND_SRC;
+        node._blendFunc.dst = BLEND_DST;
         var locRealColor = node._realColor;
         this._colorF32Array = new Float32Array([locRealColor.r / 255.0, locRealColor.g / 255.0, locRealColor.b / 255.0, node._realOpacity / 255.0]);
-        this._textureAtlas = new cc.TextureAtlas();
+        this._textureAtlas = new TextureAtlas();
         this._textureAtlas.initWithTexture(texture, itemsToRender);
-
         if (!this._textureAtlas) {
-            cc.log(cc._LogInfos.AtlasNode__initWithTexture);
+            log(_LogInfos.AtlasNode__initWithTexture);
             return false;
         }
-
         this._updateBlendFunc();
         this._updateOpacityModifyRGB();
         this._calculateMaxItems();
         node.quadsToDraw = itemsToRender;
-
         return true;
-    };
-
-    proto.setColor = function (color3) {
-        var temp = cc.color(color3.r, color3.g, color3.b), node = this._node;
+    }
+    setColor(color3) {
+        var temp = color(color3.r, color3.g, color3.b);
+        var node = this._node;
         this._colorUnmodified = color3;
         var locDisplayedOpacity = this._displayedOpacity;
         if (node._opacityModifyRGB) {
@@ -114,19 +110,17 @@
             temp.g = temp.g * locDisplayedOpacity / 255;
             temp.b = temp.b * locDisplayedOpacity / 255;
         }
-        cc.Node.prototype.setColor.call(node, temp);
-    };
-
-    proto.setOpacity = function (opacity) {
+        node.setColor(temp);
+    }
+    setOpacity(opacity) {
         var node = this._node;
-        cc.Node.prototype.setOpacity.call(node, opacity);
+        node.setOpacity(opacity);
         // special opacity for premultiplied textures
         if (node._opacityModifyRGB) {
             node.color = this._colorUnmodified;
         }
-    };
-
-    proto._updateColor = function () {
+    }
+    _updateColor() {
         if (this._colorF32Array) {
             var locDisplayedColor = this._displayedColor;
             this._colorF32Array[0] = locDisplayedColor.r / 255.0;
@@ -134,26 +128,23 @@
             this._colorF32Array[2] = locDisplayedColor.b / 255.0;
             this._colorF32Array[3] = this._displayedOpacity / 255.0;
         }
-    };
-
-    proto.getTexture = function () {
+    }
+    getTexture() {
         return this._textureAtlas.texture;
-    };
-
-    proto.setTexture = function (texture) {
+    }
+    setTexture(texture) {
         this._textureAtlas.texture = texture;
         this._updateBlendFunc();
         this._updateOpacityModifyRGB();
-    };
-
-    proto._calculateMaxItems = function () {
+    }
+    _calculateMaxItems() {
         var node = this._node;
         var selTexture = this._textureAtlas.texture;
         var size = selTexture.getContentSize();
         if (node._ignoreContentScaleFactor)
             size = selTexture.getContentSizeInPixels();
-
         node._itemsPerColumn = 0 | (size.height / node._itemHeight);
         node._itemsPerRow = 0 | (size.width / node._itemWidth);
-    };
-})();
+    }
+}
+//# sourceMappingURL=CCAtlasNodeWebGLRenderCmd.js.map

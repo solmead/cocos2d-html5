@@ -6,6 +6,8 @@ import { log, _LogInfos } from "../../../startup/CCDebugger";
 import { ccNode } from "../base-nodes/CCNode";
 import { EventHelper, iEventHandler } from "../event-manager/index";
 import { Texture2DCanvas } from "./TexturesCanvas";
+import { Texture2DWebGL } from "./TexturesWebGL";
+import { GLProgram } from "../../shaders/index";
 
 /****************************************************************************
  Copyright (c) 2008-2010 Ricardo Quesada
@@ -245,6 +247,14 @@ export var PVRHaveAlphaPremultiplied_ = false;
 //cc.Texture2DWebGL move to TextureWebGL.js
 
 export abstract class Texture2D extends ccClass implements iEventHandler {
+
+    static create(): Texture2D {
+        if (_getTexture2D) {
+            return _getTexture2D();
+        }
+    }
+
+
     private eventHandler = new EventHelper(this);
 
     addEventListener(type: string, listener: () => void, target?: any): void {
@@ -520,7 +530,12 @@ export abstract class Texture2D extends ccClass implements iEventHandler {
 
 
 
-
+    get width(): number {
+        return this._getWidth();
+    }
+    get height(): number {
+        return this._getHeight();
+    }
 
 
 }
@@ -546,7 +561,7 @@ game.addEventListener(gameEvents.EVENT_RENDERER_INITED, function () {
         }
     } else {
         _getTexture2D = (): Texture2D => {
-            return new Texture2DCanvas();
+            return new Texture2DWebGL();
         }
 
     }

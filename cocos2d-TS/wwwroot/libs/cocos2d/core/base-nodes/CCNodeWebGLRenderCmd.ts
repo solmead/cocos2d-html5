@@ -1,12 +1,22 @@
 ﻿import { RenderCmd } from "./CCRenderCmd";
 import { ccNode } from "./CCNode";
 import { color } from "../platform/index";
+import { GLProgramState } from "../../shaders/CCGLProgramState";
+import { GLProgram } from "../../shaders/CCGLProgram";
+import { Matrix4 } from "../../kazmath/mat4";
 
-
+export enum VertexType {
+    QUAD = 0,
+    TRIANGLE = 1,
+    CUSTOM = 2
+}
 
 export class WebGLRenderCmd extends RenderCmd {
     _glProgramState: GLProgramState = null;
 
+    _stackMatrix: Matrix4
+
+    vertexType: VertexType;
 
     constructor(renderable:ccNode) {
         super(renderable);
@@ -38,6 +48,9 @@ export class WebGLRenderCmd extends RenderCmd {
         this._glProgramState = glProgramState;
     }
 
+    uploadData(f32buffer: Float32Array, ui32buffer: Uint32Array, vertexDataOffset: number):number {
+        return 0;
+    }
 
 
 }

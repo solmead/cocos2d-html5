@@ -7,6 +7,9 @@ export class Color {
         a = typeof a === 'number' ? a : 255;
         this._val = ((r << 24) >>> 0) + (g << 16) + (b << 8) + a;
     }
+    toStringRGBA() {
+        return "RGBA(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")";
+    }
     get r() {
         return (this._val & 0xff000000) >>> 24;
     }
@@ -676,9 +679,9 @@ export function tex2(u, v) {
  * @param {Number} dst1 destination blend function
  */
 export class BlendFunc {
-    constructor(src1, dst1) {
-        this.src1 = src1;
-        this.dst1 = dst1;
+    constructor(src, dst) {
+        this.src = src;
+        this.dst = dst;
     }
     static get _disable() {
         return new BlendFunc(macro.ONE, macro.ZERO);

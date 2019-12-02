@@ -1,9 +1,14 @@
-﻿import { Texture2D, PIXEL_FORMAT, Texture2D_B, ALIGN, UIImage } from "./CCTexture2D";
+﻿
+import { Texture2D, PIXEL_FORMAT, Texture2D_B, ALIGN, UIImage } from "./CCTexture2D";
 import { size, Size, Point, Rect } from "../cocoa/index";
 import { loader } from "../../../startup/CCLoader";
 import { game } from "../../../startup/CCGame";
-import { contentScaleFactor, VERTEX_ATTRIB_POSITION, VERTEX_ATTRIB_TEX_COORDS } from "../platform/index";
+import { contentScaleFactor, SHADER_POSITION, VERTEX_ATTRIB } from "../platform/index";
 import { assert, _LogInfos, log } from "../../../startup/CCDebugger";
+import { GLProgram } from "../../shaders/ccglprogram";
+import { GLProgramState } from "../../shaders/CCGLProgramState";
+import { glBindTexture2D } from "../../shaders/CCGLStateCache";
+import { shaderCache } from "../../shaders/index";
 
 
 
@@ -274,7 +279,7 @@ export class Texture2DWebGL extends Texture2D {
 
         self._hasPremultipliedAlpha = false;
         self._hasMipmaps = false;
-        self.shaderProgram = shaderCache.programForKey(SHADER_POSITION_TEXTURE);
+        self.shaderProgram = shaderCache.programForKey(SHADER_POSITION.TEXTURE);
 
         self._textureLoaded = true;
 
@@ -314,10 +319,15 @@ export class Texture2DWebGL extends Texture2D {
 
         glBindTexture2D(self);
 
-        gl.enableVertexAttribArray(VERTEX_ATTRIB_POSITION);
-        gl.enableVertexAttribArray(VERTEX_ATTRIB_TEX_COORDS);
-        gl.vertexAttribPointer(VERTEX_ATTRIB_POSITION, 2, gl.FLOAT, false, 0, vertices);
-        gl.vertexAttribPointer(VERTEX_ATTRIB_TEX_COORDS, 2, gl.FLOAT, false, 0, coordinates);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertices);
+        gl.enableVertexAttribArray(VERTEX_ATTRIB.POSITION);
+        gl.vertexAttribPointer(VERTEX_ATTRIB.POSITION, 2, gl.FLOAT, false, 0, 0);
+
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, coordinates);
+        gl.enableVertexAttribArray(VERTEX_ATTRIB.TEX_COORDS);
+        gl.vertexAttribPointer(VERTEX_ATTRIB.TEX_COORDS, 2, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
@@ -345,10 +355,15 @@ export class Texture2DWebGL extends Texture2D {
         glBindTexture2D(self);
 
         var gl = game.renderContextWebGl;
-        gl.enableVertexAttribArray(VERTEX_ATTRIB_POSITION);
-        gl.enableVertexAttribArray(VERTEX_ATTRIB_TEX_COORDS);
-        gl.vertexAttribPointer(VERTEX_ATTRIB_POSITION, 2, gl.FLOAT, false, 0, vertices);
-        gl.vertexAttribPointer(VERTEX_ATTRIB_TEX_COORDS, 2, gl.FLOAT, false, 0, coordinates);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertices);
+        gl.enableVertexAttribArray(VERTEX_ATTRIB.POSITION);
+        gl.vertexAttribPointer(VERTEX_ATTRIB.POSITION, 2, gl.FLOAT, false, 0, 0);
+
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, coordinates);
+        gl.enableVertexAttribArray(VERTEX_ATTRIB.TEX_COORDS);
+        gl.vertexAttribPointer(VERTEX_ATTRIB.TEX_COORDS, 2, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
@@ -437,7 +452,7 @@ export class Texture2DWebGL extends Texture2D {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-        self.shaderProgram = shaderCache.programForKey(SHADER_POSITION_TEXTURE);
+        self.shaderProgram = shaderCache.programForKey(SHADER_POSITION.TEXTURE);
         glBindTexture2D(null);
         if (premultiplied)
             gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
@@ -614,7 +629,22 @@ export class Texture2DWebGL extends Texture2D {
     }
 
     _initPremultipliedATextureWithImage(uiImage: UIImage, width: number, height: number) {
-        //uiImage = <HTMLImageElement>uiImage;
+        //var ui1 = <HTMLImageElement>uiImage;
+        //var ui2 = <HTMLCanvasElement>uiImage;
+        //var ct = ui2.getContext("2d");
+        //var i = ct.getImageData(0, 0, 1, 1);
+        //i.
+
+        //var q = ui1.getData();
+        //var x = ui1.hasAlpha();
+        //var x = ui1.getWidth();
+        //var x = ui1.getHeight();
+        //var x = ui1.getBitsPerComponent();
+        //var q = ui2.getData();
+        //var x = ui2.hasAlpha();
+        //var x = ui2.getWidth();
+        //var x = ui2.getHeight();
+        //var x = ui2.getBitsPerComponent();
         //var tex2d = Texture2D;
         var tempData = uiImage.getData();
         var inPixel32 = null;

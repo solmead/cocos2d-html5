@@ -4,6 +4,7 @@ import * as images from "../Base64Images";
 import { error, log } from "./CCDebugger";
 import { sys } from "./CCSys";
 import { Dictionary } from "../extensions/syslibs/LinqToJs";
+import { WhenAll } from "../extensions/syslibs/Tasks";
 //+++++++++++++++++++++++++something about loader start+++++++++++++++++++++++++++
 class ImagePool {
     constructor() {
@@ -522,7 +523,7 @@ class Loader {
         }
         return url;
     }
-    async loadAsync(resources) {
+    async loadAsync(resources, progressCB) {
         //var len = arguments.length;
         //var option:any = {};
         //if (len === 0)
@@ -547,7 +548,7 @@ class Loader {
             var value = resources[i];
             Prs.push(this._loadResIteratorAsync(value, i));
         }
-        var res = await Promise.all(Prs);
+        var res = await WhenAll(Prs, progressCB);
         return res;
         //this._loadResIteratorAsync(value, index);
         //var asyncPool = new cc.AsyncPool(

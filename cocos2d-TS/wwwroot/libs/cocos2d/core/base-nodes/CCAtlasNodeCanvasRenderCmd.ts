@@ -46,7 +46,7 @@ import { Texture2DCanvas } from '../textures/TexturesCanvas';
 //    return new AtlasCanvasRenderCmd(renderable);
 //}
 
-export class AtlasNodeCanvasRenderCmd extends CanvasRenderCmd implements AtlasNodeRenderCmd {
+export class AtlasNode_CanvasRenderCmd extends CanvasRenderCmd implements AtlasNodeRenderCmd {
 
     _colorUnmodified: Color = null;
     _textureToRender: Texture2D = null;

@@ -1,3 +1,6 @@
+import { log } from "../../startup/CCDebugger";
+import { EPSILON } from "./utility";
+import { Quaternion } from "./quaternion";
 /**
  Copyright (c) 2008-2010 Ricardo Quesada
  Copyright (c) 2011-2012 cocos2d-x.org
@@ -25,27 +28,22 @@
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-window.Uint16Array = window.Uint16Array || window.Array;
-window.Float32Array = window.Float32Array || window.Array;
-(function(cc){
-    /**
+/**
      * <p>
      * A 3x3 matrix                         </br>
      * </p>
      * @class
      * @param {cc.math.Matrix3} [mat3]
      */
-    cc.math.Matrix3 = function(mat3) {
+export class Matrix3 {
+    constructor(mat3) {
         if (mat3 && mat3.mat) {
             this.mat = new Float32Array(mat3.mat);
-        } else {
+        }
+        else {
             this.mat = new Float32Array(9);
         }
-    };
-    cc.kmMat3 = cc.math.Matrix3;
-    var _p = cc.math.Matrix3.prototype;
-
+    }
     /**
      * Copy matrix.
      * @fn fill
@@ -53,7 +51,7 @@ window.Float32Array = window.Float32Array || window.Array;
      * @param  {cc.math.Matrix3} mat3 Matrix to copy
      * @return {cc.math.Matrix3} this
      */
-    _p.fill = function(mat3) {            //cc.kmMat3Fill
+    fill(mat3) {
         var mat = this.mat, matIn = mat3.mat;
         mat[0] = matIn[0];
         mat[1] = matIn[1];
@@ -65,12 +63,10 @@ window.Float32Array = window.Float32Array || window.Array;
         mat[7] = matIn[7];
         mat[8] = matIn[8];
         return this;
-    };
-
-    _p.adjugate = function(){   //= cc.kmMat3Adjugate
+    }
+    adjugate() {
         var mat = this.mat;
-        var m0 = mat[0], m1 = mat[1], m2 = mat[2], m3 = mat[3], m4 = mat[4],
-            m5 = mat[5], m6 = mat[6], m7 = mat[7], m8 = mat[8];
+        var m0 = mat[0], m1 = mat[1], m2 = mat[2], m3 = mat[3], m4 = mat[4], m5 = mat[5], m6 = mat[6], m7 = mat[7], m8 = mat[8];
         mat[0] = m4 * m8 - m5 * m7;
         mat[1] = m2 * m7 - m1 * m8;
         mat[2] = m1 * m5 - m2 * m4;
@@ -78,30 +74,25 @@ window.Float32Array = window.Float32Array || window.Array;
         mat[4] = m0 * m8 - m2 * m6;
         mat[5] = m2 * m3 - m0 * m5;
         mat[6] = m3 * m7 - m4 * m6;
-
         // XXX: pIn.mat[9] is invalid!
         //mat[7] = m1 * m6 - pIn.mat[9] * m7;
         mat[8] = m0 * m4 - m1 * m3;
         return this;
-    };
-
+    }
     /**
      * Sets pOut to an identity matrix returns pOut
      * @memberof cc.math.Matrix3
      * @param {cc.math.Matrix3} pOut - A pointer to the matrix to set to identity
      * @return {cc.math.Matrix3} this
      */
-    _p.identity = function() { //cc.kmMat3Identity
+    identity() {
         var mat = this.mat;
         mat[1] = mat[2] = mat[3] =
             mat[5] = mat[6] = mat[7] = 0;
         mat[0] = mat[4] = mat[8] = 1.0;
         return this;
-    };
-
-    var tmpMatrix = new cc.math.Matrix3();          // internal matrix
-
-    _p.inverse = function(determinate){         //cc.kmMat3Inverse
+    }
+    inverse(determinate) {
         if (determinate === 0.0)
             return this;
         tmpMatrix.assignFrom(this);
@@ -109,19 +100,16 @@ window.Float32Array = window.Float32Array || window.Array;
         this.adjugate();
         this.multiplyScalar(detInv);
         return this;
-    };
-
-    _p.isIdentity = function(){    //= cc.kmMat3IsIdentity
+    }
+    isIdentity() {
         var mat = this.mat;
         return (mat[0] === 1 && mat[1] === 0 && mat[2] === 0
-        && mat[3] === 0 && mat[4] === 1 && mat[5] === 0
-        && mat[6] === 0 && mat[7] === 0 && mat[8] === 1);
-    };
-
-    _p.transpose = function(){     // cc.kmMat3Transpose
+            && mat[3] === 0 && mat[4] === 1 && mat[5] === 0
+            && mat[6] === 0 && mat[7] === 0 && mat[8] === 1);
+    }
+    transpose() {
         var mat = this.mat;
-        var  m1 = mat[1], m2 = mat[2], m3 = mat[3],  m5 = mat[5],
-            m6 = mat[6], m7 = mat[7];
+        var m1 = mat[1], m2 = mat[2], m3 = mat[3], m5 = mat[5], m6 = mat[6], m7 = mat[7];
         // m0 = mat[0],m8 = mat[8], m4 = mat[4];
         //mat[0] = m0;
         //mat[8]  = m8;
@@ -133,9 +121,8 @@ window.Float32Array = window.Float32Array || window.Array;
         mat[6] = m2;
         mat[7] = m5;
         return this;
-    };
-
-    _p.determinant = function(){
+    }
+    determinant() {
         var mat = this.mat;
         /*
          calculating the determinant following the rule of sarus,
@@ -148,30 +135,23 @@ window.Float32Array = window.Float32Array || window.Array;
         var output = mat[0] * mat[4] * mat[8] + mat[1] * mat[5] * mat[6] + mat[2] * mat[3] * mat[7];
         output -= mat[2] * mat[4] * mat[6] + mat[0] * mat[5] * mat[7] + mat[1] * mat[3] * mat[8];
         return output;
-    };
-
-    _p.multiply = function(mat3){
+    }
+    multiply(mat3) {
         var m1 = this.mat, m2 = mat3.mat;
-        var a0 = m1[0], a1 = m1[1], a2 = m1[2], a3 = m1[3], a4 = m1[4], a5 = m1[5],
-            a6 = m1[6], a7 = m1[7], a8 = m1[8];
-        var b0 = m2[0], b1 = m2[1], b2 = m2[2], b3 = m2[3], b4 = m2[4], b5 = m2[5],
-            b6 = m2[6], b7 = m2[7], b8 = m2[8];
-
+        var a0 = m1[0], a1 = m1[1], a2 = m1[2], a3 = m1[3], a4 = m1[4], a5 = m1[5], a6 = m1[6], a7 = m1[7], a8 = m1[8];
+        var b0 = m2[0], b1 = m2[1], b2 = m2[2], b3 = m2[3], b4 = m2[4], b5 = m2[5], b6 = m2[6], b7 = m2[7], b8 = m2[8];
         m1[0] = a0 * b0 + a3 * b1 + a6 * b2;
         m1[1] = a1 * b0 + a4 * b1 + a7 * b2;
         m1[2] = a2 * b0 + a5 * b1 + a8 * b2;
-
         m1[3] = a2 * b0 + a5 * b1 + a8 * b2;
         m1[4] = a1 * b3 + a4 * b4 + a7 * b5;
         m1[5] = a2 * b3 + a5 * b4 + a8 * b5;
-
         m1[6] = a0 * b6 + a3 * b7 + a6 * b8;
         m1[7] = a1 * b6 + a4 * b7 + a7 * b8;
         m1[8] = a2 * b6 + a5 * b7 + a8 * b8;
         return this;
-    };
-
-    _p.multiplyScalar = function(factor) {
+    }
+    multiplyScalar(factor) {
         var mat = this.mat;
         mat[0] *= factor;
         mat[1] *= factor;
@@ -183,31 +163,10 @@ window.Float32Array = window.Float32Array || window.Array;
         mat[7] *= factor;
         mat[8] *= factor;
         return this;
-    };
-
-    cc.math.Matrix3.rotationAxisAngle = function(axis, radians) {    //cc.kmMat3RotationAxisAngle
-        var rcos = Math.cos(radians), rsin = Math.sin(radians);
-        var retMat = new cc.math.Matrix3();
-        var mat = retMat.mat;
-
-        mat[0] = rcos + axis.x * axis.x * (1 - rcos);
-        mat[1] = axis.z * rsin + axis.y * axis.x * (1 - rcos);
-        mat[2] = -axis.y * rsin + axis.z * axis.x * (1 - rcos);
-
-        mat[3] = -axis.z * rsin + axis.x * axis.y * (1 - rcos);
-        mat[4] = rcos + axis.y * axis.y * (1 - rcos);
-        mat[5] = axis.x * rsin + axis.z * axis.y * (1 - rcos);
-
-        mat[6] = axis.y * rsin + axis.x * axis.z * (1 - rcos);
-        mat[7] = -axis.x * rsin + axis.y * axis.z * (1 - rcos);
-        mat[8] = rcos + axis.z * axis.z * (1 - rcos);
-
-        return retMat;
-    };
-
-    _p.assignFrom = function(matIn){      // cc.kmMat3Assign
-        if(this === matIn) {
-            cc.log("cc.math.Matrix3.assign(): current matrix equals matIn");
+    }
+    assignFrom(matIn) {
+        if (this === matIn) {
+            log("cc.math.Matrix3.assign(): current matrix equals matIn");
             return this;
         }
         var mat = this.mat, m2 = matIn.mat;
@@ -221,137 +180,139 @@ window.Float32Array = window.Float32Array || window.Array;
         mat[7] = m2[7];
         mat[8] = m2[8];
         return this;
-    };
-
-    _p.equals = function(mat3) {
+    }
+    equals(mat3) {
         if (this === mat3)
             return true;
-        var EPSILON = cc.math.EPSILON,m1 = this.mat, m2 = mat3.mat;
+        var m1 = this.mat, m2 = mat3.mat;
         for (var i = 0; i < 9; ++i) {
             if (!(m1[i] + EPSILON > m2[i] && m1[i] - EPSILON < m2[i]))
                 return false;
         }
         return true;
-    };
-
-    cc.math.Matrix3.createByRotationX = function(radians) {
-        var retMat = new cc.math.Matrix3(), mat = retMat.mat;
+    }
+    rotationToAxisAngle() {
+        return Quaternion.rotationMatrix(this).toAxisAndAngle();
+    }
+    static rotationAxisAngle(axis, radians) {
+        var rcos = Math.cos(radians), rsin = Math.sin(radians);
+        var retMat = new Matrix3();
+        var mat = retMat.mat;
+        mat[0] = rcos + axis.x * axis.x * (1 - rcos);
+        mat[1] = axis.z * rsin + axis.y * axis.x * (1 - rcos);
+        mat[2] = -axis.y * rsin + axis.z * axis.x * (1 - rcos);
+        mat[3] = -axis.z * rsin + axis.x * axis.y * (1 - rcos);
+        mat[4] = rcos + axis.y * axis.y * (1 - rcos);
+        mat[5] = axis.x * rsin + axis.z * axis.y * (1 - rcos);
+        mat[6] = axis.y * rsin + axis.x * axis.z * (1 - rcos);
+        mat[7] = -axis.x * rsin + axis.y * axis.z * (1 - rcos);
+        mat[8] = rcos + axis.z * axis.z * (1 - rcos);
+        return retMat;
+    }
+    static createByRotationX(radians) {
+        var retMat = new Matrix3(), mat = retMat.mat;
         mat[0] = 1.0;
         mat[1] = 0.0;
         mat[2] = 0.0;
-
         mat[3] = 0.0;
         mat[4] = Math.cos(radians);
         mat[5] = Math.sin(radians);
-
         mat[6] = 0.0;
         mat[7] = -Math.sin(radians);
         mat[8] = Math.cos(radians);
         return retMat;
-    };
-
-    cc.math.Matrix3.createByRotationY = function(radians) {
+    }
+    static createByRotationY(radians) {
         /*
          |  cos(A)  0   sin(A) |
          M = |  0       1   0      |
          | -sin(A)  0   cos(A) |
          */
-        var retMat = new cc.math.Matrix3(), mat = retMat.mat;
+        var retMat = new Matrix3(), mat = retMat.mat;
         mat[0] = Math.cos(radians);
         mat[1] = 0.0;
         mat[2] = -Math.sin(radians);
-
         mat[3] = 0.0;
         mat[4] = 1.0;
         mat[5] = 0.0;
-
         mat[6] = Math.sin(radians);
         mat[7] = 0.0;
         mat[8] = Math.cos(radians);
         return retMat;
-    };
-
-    cc.math.Matrix3.createByRotationZ = function(radians) {
+    }
+    static createByRotationZ(radians) {
         /*
          |  cos(A)  -sin(A)   0  |
          M = |  sin(A)   cos(A)   0  |
          |  0        0        1  |
          */
-        var retMat = new cc.math.Matrix3(), mat = retMat.mat;
+        var retMat = new Matrix3(), mat = retMat.mat;
         mat[0] = Math.cos(radians);
         mat[1] = -Math.sin(radians);
         mat[2] = 0.0;
-
         mat[3] = Math.sin(radians);
         mat[4] = Math.cos(radians);
         mat[5] = 0.0;
-
         mat[6] = 0.0;
         mat[7] = 0.0;
         mat[8] = 1.0;
         return retMat;
-    };
-
-    cc.math.Matrix3.createByRotation = function(radians) {
+    }
+    ;
+    static createByRotation(radians) {
         /*
          |  cos(A)  -sin(A)   0  |
          M = |  sin(A)   cos(A)   0  |
          |  0        0        1  |
          */
-        var retMat = new cc.math.Matrix3(), mat = retMat.mat;
+        var retMat = new Matrix3(), mat = retMat.mat;
         mat[0] = Math.cos(radians);
         mat[1] = Math.sin(radians);
         mat[2] = 0.0;
-
         mat[3] = -Math.sin(radians);
         mat[4] = Math.cos(radians);
         mat[5] = 0.0;
-
         mat[6] = 0.0;
         mat[7] = 0.0;
         mat[8] = 1.0;
         return retMat;
-    };
-
-    cc.math.Matrix3.createByScale = function(x, y) {
-        var ret = new cc.math.Matrix3();
+    }
+    ;
+    static createByScale(x, y) {
+        var ret = new Matrix3();
         ret.identity();
         ret.mat[0] = x;
         ret.mat[4] = y;
         return ret;
-    };
-
-    cc.math.Matrix3.createByTranslation = function(x, y){
-        var ret = new cc.math.Matrix3();
+    }
+    ;
+    static createByTranslation(x, y) {
+        var ret = new Matrix3();
         ret.identity();
         ret.mat[6] = x;
         ret.mat[7] = y;
         return ret;
-    };
-
-    cc.math.Matrix3.createByQuaternion = function(quaternion) {     //cc.kmMat3RotationQuaternion
-        if(!quaternion)
+    }
+    ;
+    static createByQuaternion(quaternion) {
+        if (!quaternion)
             return null;
-
-        var ret = new cc.math.Matrix3(), mat = ret.mat;
+        var ret = new Matrix3(), mat = ret.mat;
         // First row
         mat[0] = 1.0 - 2.0 * (quaternion.y * quaternion.y + quaternion.z * quaternion.z);
         mat[1] = 2.0 * (quaternion.x * quaternion.y - quaternion.w * quaternion.z);
         mat[2] = 2.0 * (quaternion.x * quaternion.z + quaternion.w * quaternion.y);
-
         // Second row
         mat[3] = 2.0 * (quaternion.x * quaternion.y + quaternion.w * quaternion.z);
         mat[4] = 1.0 - 2.0 * (quaternion.x * quaternion.x + quaternion.z * quaternion.z);
         mat[5] = 2.0 * (quaternion.y * quaternion.z - quaternion.w * quaternion.x);
-
         // Third row
         mat[6] = 2.0 * (quaternion.x * quaternion.z - quaternion.w * quaternion.y);
         mat[7] = 2.0 * (quaternion.y * quaternion.z + quaternion.w * quaternion.x);
         mat[8] = 1.0 - 2.0 * (quaternion.x * quaternion.x + quaternion.y * quaternion.y);
         return ret;
-    };
-
-    _p.rotationToAxisAngle = function() {           //cc.kmMat3RotationToAxisAngle
-        return cc.math.Quaternion.rotationMatrix(this).toAxisAndAngle();
     }
-})(cc);
+    ;
+}
+var tmpMatrix = new Matrix3();
+//# sourceMappingURL=mat3.js.map

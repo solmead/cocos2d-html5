@@ -13,8 +13,9 @@ import { eventManager } from "../cocos2d/core/event-manager/CCEventManager";
 import { Dictionary } from "../extensions/syslibs/LinqToJs";
 import { EGLView } from "../cocos2d/core/platform/CCEGLView";
 import { inputManager } from "../cocos2d/core/platform/CCInputManager";
-import { Renderer, WebGlContext } from "../cocos2d/core/renderer/Renderer";
-import { CanvasContextWrapper, rendererCanvas } from "../cocos2d/core/renderer/RendererCanvas";
+import { Renderer, WebGlContext, CanvasContext } from "../cocos2d/core/renderer/Renderer";
+import { CanvasContextWrapper, rendererCanvas, RendererCanvas } from "../cocos2d/core/renderer/RendererCanvas";
+import { rendererWebGL, RendererWebGL } from "../cocos2d/core/renderer/RendererWebGL";
 import { textureCache } from "../cocos2d/core/textures/index";
 
 /****************************************************************************
@@ -312,6 +313,7 @@ class Game implements iEventHandler {
     //    this._supportRender = value;
     //}
     //private _renderContext: RenderingContext | CanvasContextWrapper = null;
+    //CanvasContext
 
     get renderContextCanvas(): CanvasContextWrapper {
         return <CanvasContextWrapper>this._renderContext;
@@ -327,6 +329,12 @@ class Game implements iEventHandler {
     }
     get renderer(): Renderer {
         return this._renderer;
+    }
+    get rendererWebGl(): RendererWebGL {
+        return <RendererWebGL>this._renderer;
+    }
+    get rendererCanvas(): RendererCanvas {
+        return <RendererCanvas>this._renderer;
     }
     get container(): HTMLDivElement {
         return this._container;

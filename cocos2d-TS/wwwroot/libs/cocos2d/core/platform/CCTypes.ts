@@ -18,6 +18,10 @@ export class Color {
 
     }
 
+    toStringRGBA(): string {
+        return "RGBA(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")";
+    }
+
     get r():number {
         return (this._val & 0xff000000) >>> 24;
     }
@@ -823,7 +827,7 @@ export function tex2(u: number, v: number): Tex2F {
  * @param {Number} dst1 destination blend function
  */
 export class BlendFunc {
-    constructor(public src1: number, public dst1: number) {
+    constructor(public src: number, public dst: number) {
 
     }
 

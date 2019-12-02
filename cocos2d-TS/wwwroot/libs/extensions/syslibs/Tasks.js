@@ -190,5 +190,18 @@ export function whenTrue(trueFunc) {
         obj.start();
     });
 }
+export async function WhenAll(list, progressCB) {
+    var tot = list.length;
+    var fin = 0;
+    list.forEach((p) => {
+        p.then(() => {
+            fin++;
+            if (progressCB) {
+                progressCB(fin, tot);
+            }
+        });
+    });
+    return await Promise.all(list);
+}
 //}
 //# sourceMappingURL=Tasks.js.map

@@ -1,3 +1,4 @@
+import { EPSILON, square } from "./utility";
 /**
  Copyright (c) 2008-2010 Ricardo Quesada
  Copyright (c) 2011-2012 cocos2d-x.org
@@ -25,89 +26,61 @@
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-(function(cc){
-    cc.math.Vec2 = function (x, y) {
-        if(y === undefined){
-            this.x = x.x;
-            this.y = x.y;
-        }else{
-            this.x = x || 0;
-            this.y = y || 0;
+export class Vec2 {
+    constructor(_x, _y) {
+        if (_y === undefined) {
+            _x = _x;
+            this.x = _x.x;
+            this.y = _x.y;
         }
-    };
-
-    var proto = cc.math.Vec2.prototype;
-    proto.fill = function(x, y){   // = cc.kmVec2Fill
+        else {
+            this.x = _x || 0;
+            this.y = _y || 0;
+        }
+    }
+    fill(x, y) {
         this.x = x;
         this.y = y;
-    };
-
-    proto.length = function(){   // = cc.kmVec2Length
-        return Math.sqrt(cc.math.square(this.x) + cc.math.square(this.y));
-    };
-
-    proto.lengthSq = function(){   // = cc.kmVec2LengthSq
-        return cc.math.square(this.x) + cc.math.square(this.y);
-    };
-
-    proto.normalize = function(){  // = cc.kmVec2Normalize
+    }
+    length() {
+        return Math.sqrt(square(this.x) + square(this.y));
+    }
+    lengthSq() {
+        return square(this.x) + square(this.y);
+    }
+    normalize() {
         var l = 1.0 / this.length();
         this.x *= l;
         this.y *= l;
         return this;
-    };
-
-    cc.math.Vec2.add = function (pOut, pV1, pV2) {     // = cc.kmVec2Add
-        pOut.x = pV1.x + pV2.x;
-        pOut.y = pV1.y + pV2.y;
-        return pOut
-    };
-
-    proto.add = function(vec){   // = cc.kmVec2Add
+    }
+    add(vec) {
         this.x += vec.x;
         this.y += vec.y;
         return this;
-    };
-
-    proto.dot = function (vec) {   //cc.kmVec2Dot
+    }
+    dot(vec) {
         return this.x * vec.x + this.y * vec.y;
-    };
-
-    cc.math.Vec2.subtract = function (pOut, pV1, pV2) {      // = cc.kmVec2Subtract
-        pOut.x = pV1.x - pV2.x;
-        pOut.y = pV1.y - pV2.y;
-        return pOut;
-    };
-
-    proto.subtract = function(vec){     // = cc.kmVec2Subtract
+    }
+    subtract(vec) {
         this.x -= vec.x;
         this.y -= vec.y;
         return this;
-    };
-
-    proto.transform = function (mat3) {     // = cc.kmVec2Transform
+    }
+    transform(mat3) {
         var x = this.x, y = this.y;
         this.x = x * mat3.mat[0] + y * mat3.mat[3] + mat3.mat[6];
         this.y = x * mat3.mat[1] + y * mat3.mat[4] + mat3.mat[7];
         return this;
-    };
-
-    cc.math.Vec2.scale = function (pOut, pIn, s) {  // = cc.kmVec2Scale
-        pOut.x = pIn.x * s;
-        pOut.y = pIn.y * s;
-        return pOut;
-    };
-
-    proto.scale = function(s) {  // = cc.kmVec2Scale
+    }
+    scale(s) {
         this.x *= s;
         this.y *= s;
         return this;
-    };
-
-    proto.equals = function (vec) {    // = cc.kmVec2AreEqual
-        return (this.x < vec.x + cc.math.EPSILON && this.x > vec.x - cc.math.EPSILON) &&
-            (this.y < vec.y + cc.math.EPSILON && this.y > vec.y - cc.math.EPSILON);
-    };
-})(cc);
-
+    }
+    equals(vec) {
+        return (this.x < vec.x + EPSILON && this.x > vec.x - EPSILON) &&
+            (this.y < vec.y + EPSILON && this.y > vec.y - EPSILON);
+    }
+}
+//# sourceMappingURL=vec2.js.map

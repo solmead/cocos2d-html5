@@ -253,23 +253,44 @@ declare global {
 
 
 
-    export function whenTrue(trueFunc: () => boolean): Promise<void> {
-        if (!trueFunc || trueFunc()) {
-            return new Promise<void>((resolve) => {
-                resolve();
-            });
-        }
+export function whenTrue(trueFunc: () => boolean): Promise<void> {
+    if (!trueFunc || trueFunc()) {
         return new Promise<void>((resolve) => {
-            var obj = new RecurringTask(() => {
-                obj.lock();
-                if (trueFunc()) {
-                    resolve();
-                    obj.stop();
-                }
-                obj.unLock();
-            }, 100);
-            obj.start();
+            resolve();
         });
     }
+    return new Promise<void>((resolve) => {
+        var obj = new RecurringTask(() => {
+            obj.lock();
+            if (trueFunc()) {
+                resolve();
+                obj.stop();
+            }
+            obj.unLock();
+        }, 100);
+        obj.start();
+    });
+}
+
+
+
+export async function WhenAll<tRet>(list: Array<Promise<tRet>>, progressCB?: ((numFinished: number, total: number) => void)): Promise<Array<tRet>> {
+    var tot = list.length;
+    var fin = 0;
+    list.forEach((p) => {
+        p.then(() => {
+            fin++;
+            if (progressCB) {
+                progressCB(fin, tot);
+            }
+        });
+    });
+
+
+
+    return await Promise.all(list);
+}
+
+
 
 //}

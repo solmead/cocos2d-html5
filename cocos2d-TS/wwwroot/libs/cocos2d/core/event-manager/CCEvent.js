@@ -282,7 +282,7 @@ export class EventMouse extends Event {
      * @return {cc.Point}
      */
     getLocationInView() {
-        return { x: this._x, y: game._view._designResolutionSize.height - this._y };
+        return { x: this._x, y: game.view._designResolutionSize.height - this._y };
     }
     _setPrevCursor(x, y) {
         this._prevX = x;

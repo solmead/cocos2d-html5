@@ -5,6 +5,7 @@ import { error, log } from "./CCDebugger";
 import { sys } from "./CCSys";
 import { Dictionary } from "../extensions/syslibs/LinqToJs";
 import { Texture2D, UIImage } from "../cocos2d/core/textures/CCTexture2D";
+import { WhenAll } from "../extensions/syslibs/Tasks";
 
 declare global {
     interface Window {
@@ -630,9 +631,9 @@ class Loader {
      * @param {function|Object} [loadCallback]
      * @return {cc.AsyncPool}
      */
-    public async loadAsync(resource: string): Promise<Array<iResource>>;
-    public async loadAsync(resources: Array<string>): Promise<Array<iResource>>;
-    public async loadAsync(resources: string | Array<string>): Promise<Array<iResource>> {
+    public async loadAsync(resource: string, progressCB?: ((numFinished: number, total: number) => void)): Promise<Array<iResource>>;
+    public async loadAsync(resources: Array<string>, progressCB?: ((numFinished: number, total: number) => void)): Promise<Array<iResource>>;
+    public async loadAsync(resources: string | Array<string>, progressCB?: ((numFinished: number, total: number) => void)): Promise<Array<iResource>> {
         //var len = arguments.length;
         //var option:any = {};
         //if (len === 0)
@@ -662,7 +663,7 @@ class Loader {
             Prs.push(this._loadResIteratorAsync(value, i));
         }
 
-        var res = await Promise.all(Prs);
+        var res = await WhenAll<iResource>(Prs, progressCB);
         return res;
 
         //this._loadResIteratorAsync(value, index);

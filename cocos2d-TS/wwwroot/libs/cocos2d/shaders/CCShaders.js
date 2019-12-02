@@ -23,25 +23,24 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-
-//-----------------------Shader_Position_uColor Shader Source--------------------------
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_UCOLOR_FRAG =
-        "precision lowp float;\n"
+export var Shaders;
+(function (Shaders) {
+    //-----------------------Shader_Position_uColor Shader Source--------------------------
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.UCOLOR_FRAG = "precision lowp float;\n"
         + "varying vec4 v_fragmentColor;\n"
         + "void main()                              \n"
         + "{ \n"
         + "    gl_FragColor = v_fragmentColor;      \n"
         + "}\n";
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_UCOLOR_VERT =
-        "attribute vec4 a_position;\n"
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.UCOLOR_VERT = "attribute vec4 a_position;\n"
         + "uniform    vec4 u_color;\n"
         + "uniform float u_pointSize;\n"
         + "varying lowp vec4 v_fragmentColor; \n"
@@ -52,26 +51,22 @@ cc.SHADER_POSITION_UCOLOR_VERT =
         + "    gl_PointSize = u_pointSize;          \n"
         + "    v_fragmentColor = u_color;           \n"
         + "}";
-
-//---------------------Shader_PositionColor Shader Source-----------------------
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_COLOR_FRAG =
-        "precision lowp float; \n"
+    //---------------------Shader_PositionColor Shader Source-----------------------
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.COLOR_FRAG = "precision lowp float; \n"
         + "varying vec4 v_fragmentColor; \n"
         + "void main() \n"
         + "{ \n"
         + "     gl_FragColor = v_fragmentColor; \n"
         + "} ";
-
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_COLOR_VERT =
-        "attribute vec4 a_position;\n"
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.COLOR_VERT = "attribute vec4 a_position;\n"
         + "attribute vec4 a_color;\n"
         + "varying lowp vec4 v_fragmentColor;\n"
         + "void main()\n"
@@ -79,9 +74,7 @@ cc.SHADER_POSITION_COLOR_VERT =
         + "    gl_Position = (CC_PMatrix * CC_MVMatrix) * a_position;  \n"
         + "    v_fragmentColor = a_color;             \n"
         + "}";
-
-cc.SHADER_SPRITE_POSITION_COLOR_VERT =
-        "attribute vec4 a_position;\n"
+    Shaders.SPRITE_COLOR_VERT = "attribute vec4 a_position;\n"
         + "attribute vec4 a_color;\n"
         + "varying lowp vec4 v_fragmentColor;\n"
         + "void main()\n"
@@ -89,14 +82,12 @@ cc.SHADER_SPRITE_POSITION_COLOR_VERT =
         + "    gl_Position = CC_PMatrix * a_position;  \n"
         + "    v_fragmentColor = a_color;             \n"
         + "}";
-
-// --------------------- Shader_PositionColorLengthTexture Shader source------------------------
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_COLOR_LENGTH_TEXTURE_FRAG =
-        "// #extension GL_OES_standard_derivatives : enable\n"
+    // --------------------- Shader_PositionColorLengthTexture Shader source------------------------
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.COLOR_LENGTH_TEXTURE_FRAG = "// #extension GL_OES_standard_derivatives : enable\n"
         + "varying mediump vec4 v_color;\n"
         + "varying mediump vec2 v_texcoord;\n"
         + "void main()	\n"
@@ -107,13 +98,11 @@ cc.SHADER_POSITION_COLOR_LENGTH_TEXTURE_FRAG =
         + "gl_FragColor = v_color * step(0.0, 1.0 - length(v_texcoord)); \n"
         + "// #endif \n"
         + "}";
-
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_COLOR_LENGTH_TEXTURE_VERT =
-        "attribute mediump vec4 a_position; \n"
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.COLOR_LENGTH_TEXTURE_VERT = "attribute mediump vec4 a_position; \n"
         + "attribute mediump vec2 a_texcoord; \n"
         + "attribute mediump vec4 a_color;	\n"
         + "varying mediump vec4 v_color; \n"
@@ -125,26 +114,22 @@ cc.SHADER_POSITION_COLOR_LENGTH_TEXTURE_VERT =
         //+ "    gl_Position = CC_MVPMatrix * a_position;  \n"
         + "    gl_Position = (CC_PMatrix * CC_MVMatrix) * a_position;  \n"
         + "}";
-
-// ----------------------Shader_PositionTexture Shader Source-------------------------------------
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_TEXTURE_FRAG =
-        "precision lowp float;   \n"
+    // ----------------------Shader_PositionTexture Shader Source-------------------------------------
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.TEXTURE_FRAG = "precision lowp float;   \n"
         + "varying vec2 v_texCoord;  \n"
         + "void main() \n"
         + "{  \n"
         + "    gl_FragColor =  texture2D(CC_Texture0, v_texCoord);   \n"
         + "}";
-
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_TEXTURE_VERT =
-        "attribute vec4 a_position; \n"
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.TEXTURE_VERT = "attribute vec4 a_position; \n"
         + "attribute vec2 a_texCoord; \n"
         + "varying mediump vec2 v_texCoord; \n"
         + "void main() \n"
@@ -153,27 +138,23 @@ cc.SHADER_POSITION_TEXTURE_VERT =
         + "    gl_Position = (CC_PMatrix * CC_MVMatrix) * a_position;  \n"
         + "    v_texCoord = a_texCoord;               \n"
         + "}";
-
-// ------------------------Shader_PositionTexture_uColor Shader Source-------------------------------
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_TEXTURE_UCOLOR_FRAG =
-        "precision lowp float;  \n"
+    // ------------------------Shader_PositionTexture_uColor Shader Source-------------------------------
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.TEXTURE_UCOLOR_FRAG = "precision lowp float;  \n"
         + "uniform vec4 u_color; \n"
         + "varying vec2 v_texCoord; \n"
         + "void main() \n"
         + "{  \n"
         + "    gl_FragColor =  texture2D(CC_Texture0, v_texCoord) * u_color;    \n"
         + "}";
-
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_TEXTURE_UCOLOR_VERT =
-        "attribute vec4 a_position;\n"
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.TEXTURE_UCOLOR_VERT = "attribute vec4 a_position;\n"
         + "attribute vec2 a_texCoord; \n"
         + "varying mediump vec2 v_texCoord; \n"
         + "void main() \n"
@@ -182,29 +163,25 @@ cc.SHADER_POSITION_TEXTURE_UCOLOR_VERT =
         + "    gl_Position = (CC_PMatrix * CC_MVMatrix) * a_position;  \n"
         + "    v_texCoord = a_texCoord;                 \n"
         + "}";
-
-//---------------------Shader_PositionTextureA8Color Shader source-------------------------------
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_TEXTURE_A8COLOR_FRAG =
-        "precision lowp float;  \n"
+    //---------------------Shader_PositionTextureA8Color Shader source-------------------------------
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.TEXTURE_A8COLOR_FRAG = "precision lowp float;  \n"
         + "varying vec4 v_fragmentColor; \n"
         + "varying vec2 v_texCoord; \n"
         + "void main() \n"
         + "{ \n"
-        + "    gl_FragColor = vec4( v_fragmentColor.rgb,         \n"                            // RGB from uniform
-        + "        v_fragmentColor.a * texture2D(CC_Texture0, v_texCoord).a   \n"                  // A from texture and uniform
+        + "    gl_FragColor = vec4( v_fragmentColor.rgb,         \n" // RGB from uniform
+        + "        v_fragmentColor.a * texture2D(CC_Texture0, v_texCoord).a   \n" // A from texture and uniform
         + "    ); \n"
         + "}";
-
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_TEXTURE_A8COLOR_VERT =
-        "attribute vec4 a_position; \n"
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.TEXTURE_A8COLOR_VERT = "attribute vec4 a_position; \n"
         + "attribute vec2 a_texCoord; \n"
         + "attribute vec4 a_color;  \n"
         + "varying lowp vec4 v_fragmentColor; \n"
@@ -215,27 +192,23 @@ cc.SHADER_POSITION_TEXTURE_A8COLOR_VERT =
         + "    v_fragmentColor = a_color; \n"
         + "    v_texCoord = a_texCoord; \n"
         + "}";
-
-// ------------------------Shader_PositionTextureColor Shader source------------------------------------
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_TEXTURE_COLOR_FRAG =
-        "precision lowp float;\n"
+    // ------------------------Shader_PositionTextureColor Shader source------------------------------------
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.TEXTURE_COLOR_FRAG = "precision lowp float;\n"
         + "varying vec4 v_fragmentColor; \n"
         + "varying vec2 v_texCoord; \n"
         + "void main() \n"
         + "{ \n"
         + "    gl_FragColor = v_fragmentColor * texture2D(CC_Texture0, v_texCoord); \n"
         + "}";
-
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_TEXTURE_COLOR_VERT =
-        "attribute vec4 a_position; \n"
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.TEXTURE_COLOR_VERT = "attribute vec4 a_position; \n"
         + "attribute vec2 a_texCoord; \n"
         + "attribute vec4 a_color;  \n"
         + "varying lowp vec4 v_fragmentColor; \n"
@@ -246,13 +219,11 @@ cc.SHADER_POSITION_TEXTURE_COLOR_VERT =
         + "    v_fragmentColor = a_color; \n"
         + "    v_texCoord = a_texCoord; \n"
         + "}";
-
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_SPRITE_POSITION_TEXTURE_COLOR_VERT =
-        "attribute vec4 a_position; \n"
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.SPRITE_TEXTURE_COLOR_VERT = "attribute vec4 a_position; \n"
         + "attribute vec2 a_texCoord; \n"
         + "attribute vec4 a_color;  \n"
         + "varying lowp vec4 v_fragmentColor; \n"
@@ -262,25 +233,22 @@ cc.SHADER_SPRITE_POSITION_TEXTURE_COLOR_VERT =
         + "    gl_Position = CC_PMatrix * a_position;  \n"
         + "    v_fragmentColor = a_color; \n"
         + "    v_texCoord = a_texCoord; \n"
-    + "}";
-
-cc.SHADER_SPRITE_POSITION_TEXTURE_COLOR_GRAY_FRAG =
-        "precision lowp float;\n"
+        + "}";
+    Shaders.SPRITE_TEXTURE_COLOR_GRAY_FRAG = "precision lowp float;\n"
         + "varying vec4 v_fragmentColor; \n"
         + "varying vec2 v_texCoord; \n"
         + "void main() \n"
         + "{ \n"
         + "    vec4 c = texture2D(CC_Texture0, v_texCoord); \n"
         + "    gl_FragColor.xyz = vec3(0.2126*c.r + 0.7152*c.g + 0.0722*c.b); \n"
-        +"     gl_FragColor.w = c.w ; \n"
+        + "     gl_FragColor.w = c.w ; \n"
         + "}";
-//-----------------------Shader_PositionTextureColorAlphaTest_frag Shader Source----------------------------
-/**
- * @constant
- * @type {String}
- */
-cc.SHADER_POSITION_TEXTURE_COLOR_ALPHATEST_FRAG =
-        "precision lowp float;   \n"
+    //-----------------------Shader_PositionTextureColorAlphaTest_frag Shader Source----------------------------
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.TEXTURE_COLOR_ALPHATEST_FRAG = "precision lowp float;   \n"
         + "varying vec4 v_fragmentColor; \n"
         + "varying vec2 v_texCoord;   \n"
         + "uniform float CC_alpha_value; \n"
@@ -293,14 +261,12 @@ cc.SHADER_POSITION_TEXTURE_COLOR_ALPHATEST_FRAG =
         + "        discard; \n"
         + "    gl_FragColor = texColor * v_fragmentColor;  \n"
         + "}";
-
-//-----------------------ShaderEx_SwitchMask_frag Shader Source----------------------------
-/**
- * @constant
- * @type {String}
- */
-cc.SHADEREX_SWITCHMASK_FRAG =
-        "precision lowp float; \n"
+    //-----------------------ShaderEx_SwitchMask_frag Shader Source----------------------------
+    /**
+     * @constant
+     * @type {String}
+     */
+    Shaders.SHADEREX_SWITCHMASK_FRAG = "precision lowp float; \n"
         + "varying vec4 v_fragmentColor; \n"
         + "varying vec2 v_texCoord; \n"
         + "uniform sampler2D u_texture;  \n"
@@ -312,3 +278,5 @@ cc.SHADEREX_SWITCHMASK_FRAG =
         + "    vec4 finalColor = vec4(texColor.r, texColor.g, texColor.b, maskColor.a * texColor.a);        \n"
         + "    gl_FragColor    = v_fragmentColor * finalColor; \n"
         + "}";
+})(Shaders || (Shaders = {}));
+//# sourceMappingURL=CCShaders.js.map

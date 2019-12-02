@@ -4,8 +4,8 @@ import { game, RENDER_TYPE } from "../../../startup/CCGame";
 import { RenderCmd } from "./CCRenderCmd";
 import { log, _LogInfos } from "../../../startup/CCDebugger";
 import { AtlasNodeRenderCmd } from "./CCAtlasNodeRenderCmd";
-import { AtlasNodeCanvasRenderCmd } from "./CCAtlasNodeCanvasRenderCmd";
-import { AtlasNodeWebGLRenderCmd } from "./CCAtlasNodeWebGLRenderCmd";
+import { AtlasNode_CanvasRenderCmd } from "./CCAtlasNodeCanvasRenderCmd";
+import { AtlasNode_WebGLRenderCmd } from "./CCAtlasNodeWebGLRenderCmd";
 import { Texture2D } from "../textures/CCTexture2D";
 import { TextureAtlas } from "../textures/CCTextureAtlas";
 import { textureCache } from "../textures/CCTextureCache";
@@ -108,10 +108,10 @@ export class AtlasNode extends ccNode {
 
 
     _createRenderCmd(): RenderCmd {
-        if (game._renderType === RENDER_TYPE.CANVAS)
-            this._renderCmd = new AtlasNodeCanvasRenderCmd(this);
+        if (game.renderType === RENDER_TYPE.CANVAS)
+            this._renderCmd = new AtlasNode_CanvasRenderCmd(this);
         else
-            this._renderCmd = new AtlasNodeWebGLRenderCmd(this);
+            this._renderCmd = new AtlasNode_WebGLRenderCmd(this);
 
         return this._renderCmd;
     }
@@ -310,6 +310,14 @@ export class AtlasNode extends ccNode {
     }
     set texture(value: Texture2D) {
         this.setTexture(value);
+    }
+
+
+    get renderCmdWebGl(): AtlasNode_WebGLRenderCmd {
+        return <AtlasNode_WebGLRenderCmd>this._renderCmd;
+    }
+    get renderCmdCanvas(): AtlasNode_CanvasRenderCmd {
+        return <AtlasNode_CanvasRenderCmd>this._renderCmd;
     }
 
 }

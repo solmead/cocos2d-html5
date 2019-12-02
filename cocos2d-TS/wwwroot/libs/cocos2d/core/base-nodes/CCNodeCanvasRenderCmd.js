@@ -89,7 +89,7 @@ export class CanvasRenderCmd extends RenderCmd {
                 item._renderCmd.detachFromParent();
         }
     }
-    _getCompositeOperationByBlendFunc(blendFunc = null) {
+    static _getCompositeOperationByBlendFunc(blendFunc = null) {
         if (!blendFunc)
             return "source-over";
         else {

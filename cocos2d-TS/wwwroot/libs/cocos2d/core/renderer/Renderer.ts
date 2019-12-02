@@ -1,5 +1,5 @@
 ﻿import { ccClass } from "../platform/index";
-import { RenderCmd } from "../base-nodes/CCRenderCmd";
+import { RenderCmd, IRenderCmd } from "../base-nodes/CCRenderCmd";
 import { CanvasContextWrapper } from "./RendererCanvas";
 
 export interface iRenderableObject {
@@ -7,6 +7,7 @@ export interface iRenderableObject {
 }
 
 export type WebGlContext = WebGL2RenderingContext | WebGLRenderingContext;
+export type CanvasContext = ImageBitmapRenderingContext | CanvasRenderingContext2D | CanvasContextWrapper;
 
 //export interface iRenderer {
 //    childrenOrderDirty: boolean;
@@ -33,7 +34,7 @@ export abstract class Renderer extends ccClass {
         return renderableObject._createRenderCmd();
     }
 
-    abstract pushRenderCommand(renderCmd: RenderCmd):void;
+    abstract pushRenderCommand(renderCmd: IRenderCmd):void;
 
     abstract pushDirtyNode(renderCmd: RenderCmd): void;
 

@@ -5,6 +5,7 @@ import * as macro from "./platform/CCMacro";
 import {Event, EventCustom, eventManager } from "./event-manager/index";
 import { EGLView } from "./platform/CCEGLView";
 import { DirtyRegion } from "./renderer/DirtyRegion";
+import { Scene } from "./scenes/index";
 
 /****************************************************************************
  Copyright (c) 2008-2010 Ricardo Quesada
@@ -49,7 +50,7 @@ abstract class Director extends ccClass {
     protected _winSizeInPoints:Size = null;
 
     protected _lastUpdate: number = null;
-    protected _nextScene:Scene = null;
+    protected _nextScene: Scene = null;
     protected _notificationNode = null;
     protected _openGLView = null;
     protected _scenesStack:Array<Scene> = null;

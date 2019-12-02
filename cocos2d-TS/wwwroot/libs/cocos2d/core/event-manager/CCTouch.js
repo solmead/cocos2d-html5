@@ -144,7 +144,7 @@ export class ccTouch extends ccClass {
         this._id = id;
         if (!this._startPointCaptured) {
             this._startPoint = p(this._point);
-            game._view._convertPointWithScale(this._startPoint);
+            game.view._convertPointWithScale(this._startPoint);
             this._startPointCaptured = true;
         }
     }

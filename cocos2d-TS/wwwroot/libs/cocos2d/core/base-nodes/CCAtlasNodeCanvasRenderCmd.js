@@ -36,7 +36,7 @@ import { rect } from '../cocoa/index';
 //AtlasNode.prototype.CanvasRenderCmd = (renderable: AtlasNode): AtlasCanvasRenderCmd => {
 //    return new AtlasCanvasRenderCmd(renderable);
 //}
-export class AtlasNodeCanvasRenderCmd extends CanvasRenderCmd {
+export class AtlasNode_CanvasRenderCmd extends CanvasRenderCmd {
     constructor(renderable) {
         super(renderable);
         this._colorUnmodified = null;

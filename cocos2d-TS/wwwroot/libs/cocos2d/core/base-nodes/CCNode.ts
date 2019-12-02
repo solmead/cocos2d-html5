@@ -1,6 +1,6 @@
 ﻿import { ccClass } from "../platform/CCClass";
 import { Point, Size, p, size, affineTransformMakeIdentity, AffineTransform, Rect, rect, _rectApplyAffineTransformIn, affineTransformConcat, affineTransformInvert, pointApplyAffineTransform, affineTransformConcatIn, rectApplyAffineTransform, rectUnion } from "../cocoa/index";
-import { Color, color, arrayRemoveObject } from "../platform/index";
+import { Color, color, arrayRemoveObject, REPEAT_FOREVER } from "../platform/index";
 import { eventManager, ccTouch } from "../event-manager/index";
 import { log, _LogInfos, assert } from "../../../startup/CCDebugger";
 import { game, RENDER_TYPE } from "../../../startup/CCGame";
@@ -10,6 +10,8 @@ import { _dirtyFlags, RenderCmd } from "./CCRenderCmd";
 import { CanvasRenderCmd } from "./CCNodeCanvasRenderCmd";
 import { WebGLRenderCmd } from "./CCNodeWebGLRenderCmd";
 import { iRenderableObject } from "../renderer/Renderer";
+import { GLProgramState } from "../../shaders/CCGLProgramState";
+import { GLProgram } from "../../shaders/CCGLProgram";
 
 /****************************************************************************
  Copyright (c) 2008-2010 Ricardo Quesada
@@ -219,6 +221,17 @@ export class ccNode extends ccClass implements iRenderableObject {
         this._renderCmd = this._createRenderCmd();
     }
 
+
+    get renderCmd(): RenderCmd {
+        return this._renderCmd;
+    }
+    get renderCmdWebGl(): WebGLRenderCmd {
+        return <WebGLRenderCmd>this._renderCmd;
+    }
+    get renderCmdCanvas(): CanvasRenderCmd {
+        return <CanvasRenderCmd>this._renderCmd;
+    }
+
     /**
      * Initializes the instance of cc.Node
      * @function
@@ -226,6 +239,12 @@ export class ccNode extends ccClass implements iRenderableObject {
      */
     init(): boolean {
         return true;
+    }
+    initAsync(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            var v = this.init();
+            resolve(v);
+        });
     }
     /**
      * <p>Properties configuration function </br>
@@ -1459,7 +1478,7 @@ export class ccNode extends ccClass implements iRenderableObject {
         child._setLocalZOrder(z);
     }
 
-    setNodeDirty(): void {
+    setNodeDirty(flg?:boolean): void {
         this._renderCmd.setDirtyFlag(_dirtyFlags.transformDirty);
     }
 
@@ -2232,7 +2251,7 @@ export class ccNode extends ccClass implements iRenderableObject {
      * @function
      * @param {cc.Node} parent
      */
-    visit(parent: ccNode): void {
+    visit(parent?: ccNode): void {
         var cmd = this._renderCmd, parentCmd = parent ? parent._renderCmd : null;
 
         // quick return if not visible

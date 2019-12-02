@@ -1,9 +1,11 @@
-﻿import { ccClass, V3F_C4B_T2F_Quad, TEXTURE_ATLAS_USE_TRIANGLE_STRIP, VERTEX_ATTRIB_POSITION, VERTEX_ATTRIB_COLOR, VERTEX_ATTRIB_TEX_COORDS, g_NumberOfDraws, setNumberOfDraws } from "../platform/index"
+﻿import { ccClass, V3F_C4B_T2F_Quad, TEXTURE_ATLAS_USE_TRIANGLE_STRIP,g_NumberOfDraws, setNumberOfDraws, VERTEX_ATTRIB } from "../platform/index"
 import { Texture2D } from "./CCTexture2D";
 import { isString } from "../../../startup/CCChecks";
 import { game } from "../../../startup/CCGame";
 import { textureCache } from "./CCTextureCache";
 import { log, _LogInfos, assert } from "../../../startup/CCDebugger";
+import { glBindTexture2D } from "../../shaders/index";
+import { Texture2DWebGL } from "./TexturesWebGL";
 
 /****************************************************************************
  Copyright (c) 2008-2010 Ricardo Quesada
@@ -623,7 +625,7 @@ export class TextureAtlas extends ccClass {
             return;
 
         var gl = game.renderContextWebGl;
-        glBindTexture2D(_t.texture);
+        glBindTexture2D(<Texture2DWebGL>_t.texture);
 
         //
         // Using VBO without VAO
@@ -638,13 +640,13 @@ export class TextureAtlas extends ccClass {
             _t.dirty = false;
         }
 
-        gl.enableVertexAttribArray(VERTEX_ATTRIB_POSITION);
-        gl.enableVertexAttribArray(VERTEX_ATTRIB_COLOR);
-        gl.enableVertexAttribArray(VERTEX_ATTRIB_TEX_COORDS);
+        gl.enableVertexAttribArray(VERTEX_ATTRIB.POSITION);
+        gl.enableVertexAttribArray(VERTEX_ATTRIB.COLOR);
+        gl.enableVertexAttribArray(VERTEX_ATTRIB.TEX_COORDS);
 
-        gl.vertexAttribPointer(VERTEX_ATTRIB_POSITION, 3, gl.FLOAT, false, 24, 0);               // vertices
-        gl.vertexAttribPointer(VERTEX_ATTRIB_COLOR, 4, gl.UNSIGNED_BYTE, true, 24, 12);          // colors
-        gl.vertexAttribPointer(VERTEX_ATTRIB_TEX_COORDS, 2, gl.FLOAT, false, 24, 16);            // tex coords
+        gl.vertexAttribPointer(VERTEX_ATTRIB.POSITION, 3, gl.FLOAT, false, 24, 0);               // vertices
+        gl.vertexAttribPointer(VERTEX_ATTRIB.COLOR, 4, gl.UNSIGNED_BYTE, true, 24, 12);          // colors
+        gl.vertexAttribPointer(VERTEX_ATTRIB.TEX_COORDS, 2, gl.FLOAT, false, 24, 16);            // tex coords
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _t._buffersVBO[1]);
 
